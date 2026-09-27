@@ -1,8 +1,44 @@
 import 'package:flutter/material.dart';
 import 'fale_conosco_screen.dart';
+import 'admin_home_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  void _fazerLogin() {
+    final email = _emailController.text.trim();
+    final senha = _passwordController.text;
+
+    if (email == 'admin' && senha == '123') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Credenciais incorretas! Tente admin / 123'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +124,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         TextField(
+                          controller: _emailController,
                           decoration: InputDecoration(
                             hintText: 'seu@email.com',
                             prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
@@ -139,11 +176,22 @@ class LoginScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         TextField(
-                          obscureText: true,
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             hintText: '••••••••',
                             prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-                            suffixIcon: const Icon(Icons.visibility_off_outlined, color: Colors.grey),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
@@ -165,7 +213,7 @@ class LoginScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton.icon(
-                            onPressed: () {},
+                            onPressed: _fazerLogin,
                             icon: const Icon(Icons.login, color: Colors.white),
                             label: const Text(
                               'Entrar',

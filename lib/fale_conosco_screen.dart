@@ -88,8 +88,8 @@ class FaleConoscoScreen extends StatelessWidget {
               overline: 'E-MAIL COMERCIAL',
               title: 'vendas@collibooks.com',
               subtitle: 'Envie propostas e orçamentos',
-              trailingIcon: Icons.send_outlined,
-              onTap: () => _abrirLink('mailto:vendas@collibooks.com'),
+              trailingIcon: Icons.copy,
+              onTap: () => _copiarTexto(context, 'vendas@collibooks.com', 'Endereço de e-mail copiado!'),
             ),
             const SizedBox(height: 16),
             _buildContactCard(
