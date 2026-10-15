@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../admin/presentation/screens/admin_home_screen.dart';
 import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
+import '../../../professor/presentation/screens/professor_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,10 +24,19 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute<void>(builder: (context) => const AdminHomeScreen()),
       );
+    } else if ((email.toLowerCase() == 'professor' || email.contains('@')) && senha.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(
+          builder: (context) => ProfessorHomeScreen(
+            professorEmail: email.contains('@') ? email : 'professor@escola.edu.br',
+          ),
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Credenciais incorretas! Tente admin / 123'),
+          content: Text('Credenciais incorretas! Tente admin / 123 ou professor / 123'),
           backgroundColor: Colors.red,
         ),
       );
