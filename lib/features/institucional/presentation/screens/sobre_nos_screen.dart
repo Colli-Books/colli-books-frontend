@@ -53,7 +53,7 @@ class SobreNosScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
                   ),
                 ),
                 padding: const EdgeInsets.all(24.0),

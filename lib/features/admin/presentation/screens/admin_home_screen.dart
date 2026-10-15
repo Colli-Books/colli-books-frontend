@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'login_screen.dart';
-import 'convidar_professor_screen.dart';
-import 'termos_uso_screen.dart';
-import 'politica_privacidade_screen.dart';
-import 'cadastrar_obra_screen.dart';
-import 'cadastrar_escolaridade_screen.dart';
-import 'cadastrar_tema_screen.dart';
-import 'catalogo_data.dart';
-import 'editar_obra_screen.dart';
-import 'sobre_nos_screen.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
+import '../../../institucional/presentation/screens/sobre_nos_screen.dart';
+import '../../../institucional/presentation/screens/termos_uso_screen.dart';
+import '../../../obras/presentation/screens/cadastrar_escolaridade_screen.dart';
+import '../../../obras/presentation/screens/cadastrar_obra_screen.dart';
+import '../../../obras/presentation/screens/cadastrar_tema_screen.dart';
+import '../../../obras/presentation/screens/catalogo_data.dart';
+import '../../../obras/presentation/screens/editar_obra_screen.dart';
+import '../../../professor/presentation/screens/convidar_professor_screen.dart';
+import '../widgets/navbar_admin.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -45,7 +46,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const primaryTextColor = Color(0xFF331212);
     const secondaryTextColor = Color(0xFF8C7A70);
     const accentColor = Color(0xFFA1A32D);
-    const cardColor = Colors.white;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -181,7 +181,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               iconBgColor: accentColor,
               iconColor: Colors.white,
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ConvidarProfessorScreen()));
+                Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const ConvidarProfessorScreen()));
               },
             ),
             const SizedBox(height: 16),
@@ -192,7 +192,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               iconBgColor: const Color(0xFF5E3232), // Dark Brown/Reddish
               iconColor: Colors.white,
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CadastrarObraScreen()));
+                Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const CadastrarObraScreen()));
               },
             ),
             
@@ -200,49 +200,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFFF6F1E3),
-        selectedItemColor: accentColor,
-        unselectedItemColor: primaryTextColor,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+      bottomNavigationBar: NavbarAdmin(
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.home),
-            ),
-            label: 'Início',
-          ),
-          BottomNavigationBarItem(
-            icon: Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.school_outlined),
-            ),
-            label: 'Professores',
-          ),
-          BottomNavigationBarItem(
-            icon: Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.menu_book_outlined),
-            ),
-            label: 'Catálogo',
-          ),
-          BottomNavigationBarItem(
-            icon: Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.person_outline),
-            ),
-            label: 'Perfil',
-          ),
-        ],
       ),
     );
   }
@@ -271,7 +235,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
               );
             },
             icon: const Icon(Icons.exit_to_app, color: Color(0xFFC62828)),
@@ -292,8 +256,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   Widget _buildProfessores(Color primaryText, Color secondaryText, Color accentColor) {
     final filteredProfessores = professores.where((p) {
-      final name = p['nome']!.toLowerCase();
-      final school = p['escola']!.toLowerCase();
+      final name = (p['nome'] as String).toLowerCase();
+      final school = (p['escola'] as String).toLowerCase();
       final query = _searchQuery.toLowerCase();
       final matchesSearch = name.contains(query) || school.contains(query);
       final matchesStatus = _filterStatus == 'Todos' || p['status'] == _filterStatus;
@@ -313,7 +277,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ConvidarProfessorScreen()));
+                Navigator.push<void>(context, MaterialPageRoute<void>(builder: (context) => const ConvidarProfessorScreen()));
               },
               icon: const Icon(Icons.person_add_alt_1_outlined, color: Colors.white),
               label: const Text('Convidar Professor', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -382,14 +346,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: TextStyle(color: secondaryText, fontSize: 14, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ...filteredProfessores.map((prof) => _buildProfessorCard(prof, primaryText, secondaryText)).toList(),
+          ...filteredProfessores.map((prof) => _buildProfessorCard(prof, primaryText, secondaryText)),
         ],
       ),
     );
   }
 
   Widget _buildProfessorCard(Map<String, dynamic> prof, Color primaryText, Color secondaryText) {
-    final isAtivo = prof['status'] == 'Ativo';
+    final nome = prof['nome'] as String;
+    final email = prof['email'] as String? ?? '';
+    final escola = prof['escola'] as String? ?? '';
+    final status = prof['status'] as String;
+    final data = prof['data'] as String;
+    final iniciais = prof['iniciais'] as String;
+    final isAtivo = status == 'Ativo';
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(24),
@@ -400,24 +370,24 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(backgroundColor: const Color(0xFFF3EFE4), radius: 24, child: Text(prof['iniciais']!, style: const TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold))),
+              CircleAvatar(backgroundColor: const Color(0xFFF3EFE4), radius: 24, child: Text(iniciais, style: const TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold))),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(prof['nome']!, style: TextStyle(color: primaryText, fontSize: 18, fontWeight: FontWeight.w800)),
+                    Text(nome, style: TextStyle(color: primaryText, fontSize: 18, fontWeight: FontWeight.w800)),
                     if (isAtivo) ...[
                       const SizedBox(height: 2),
-                      Text(prof['email']!, style: const TextStyle(color: Color(0xFF6B6B6B), fontSize: 13)),
+                      Text(email, style: const TextStyle(color: Color(0xFF6B6B6B), fontSize: 13)),
                     ],
-                    if (prof['escola']!.isNotEmpty) ...[
+                    if (escola.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(Icons.school_outlined, size: 14, color: Color(0xFF6B6B6B)),
                           const SizedBox(width: 4),
-                          Expanded(child: Text(prof['escola']!, style: const TextStyle(color: Color(0xFF6B6B6B), fontSize: 12))),
+                          Expanded(child: Text(escola, style: const TextStyle(color: Color(0xFF6B6B6B), fontSize: 12))),
                         ],
                       ),
                     ],
@@ -435,7 +405,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       children: [
                         Icon(Icons.circle, size: 8, color: isAtivo ? const Color(0xFF4A9E9E) : const Color(0xFFC47335)),
                         const SizedBox(width: 4),
-                        Text(prof['status']!, style: TextStyle(color: isAtivo ? const Color(0xFF4A9E9E) : const Color(0xFFC47335), fontSize: 12, fontWeight: FontWeight.bold)),
+                        Text(status, style: TextStyle(color: isAtivo ? const Color(0xFF4A9E9E) : const Color(0xFFC47335), fontSize: 12, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -443,11 +413,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () {
-                        showDialog(
+                        showDialog<void>(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Excluir Professor', style: TextStyle(color: Color(0xFF4A2525))),
-                            content: Text('Tem certeza que deseja excluir o professor "${prof['nome']}"?'),
+                            content: Text('Tem certeza que deseja excluir o professor "$nome"?'),
                             actions: [
                               TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
                               ElevatedButton(
@@ -478,7 +448,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 16),
           const Divider(color: Color(0xFFEBE8E0), height: 1),
           const SizedBox(height: 16),
-          Text(prof['data']!, style: TextStyle(color: primaryText, fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(data, style: TextStyle(color: primaryText, fontSize: 12, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -513,7 +483,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () async {
-                final newBook = await Navigator.push(context, MaterialPageRoute(builder: (context) => const CadastrarObraScreen()));
+                final newBook = await Navigator.push<dynamic>(context, MaterialPageRoute<dynamic>(builder: (context) => const CadastrarObraScreen()));
                 if (newBook != null) {
                   setState(() {
                     catalogBooks.add(newBook as Map<String, dynamic>);
@@ -534,7 +504,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CadastrarEscolaridadeScreen()));
+                Navigator.push<void>(context, MaterialPageRoute<void>(builder: (context) => const CadastrarEscolaridadeScreen()));
               },
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text('Adicionar Escolaridade', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -550,7 +520,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CadastrarTemaScreen()));
+                Navigator.push<void>(context, MaterialPageRoute<void>(builder: (context) => const CadastrarTemaScreen()));
               },
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text('Adicionar Tema', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -691,7 +661,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                     children: [
                                       InkWell(
                                         onTap: () async {
-                                          final updatedBook = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditarObraScreen(bookData: book)));
+                                          final updatedBook = await Navigator.push<dynamic>(context, MaterialPageRoute<dynamic>(builder: (context) => EditarObraScreen(bookData: book)));
                                           if (updatedBook != null) {
                                             setState(() {
                                               final index = catalogBooks.indexOf(book);
@@ -706,7 +676,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                       const SizedBox(width: 4),
                                       InkWell(
                                         onTap: () {
-                                          showDialog(
+                                          showDialog<void>(
                                             context: context,
                                             builder: (context) => AlertDialog(
                                               title: const Text('Excluir Obra', style: TextStyle(color: Color(0xFF4A2525))),
@@ -786,7 +756,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -858,7 +828,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -933,7 +903,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 _buildDrawerItem(Icons.edit_note_outlined, 'Blog', primaryText, isLink: true, onTap: () => _abrirLink('https://www.collibooks.com/category/blog/')),
                 _buildDrawerItem(Icons.star_outline, 'Anima Kids', primaryText, isLink: true, onTap: () => _abrirLink('https://www.collibooks.com/anima-kids/')),
                 _buildDrawerItem(Icons.info_outline, 'Sobre Nós', primaryText, onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SobreNosScreen()));
+                  Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const SobreNosScreen()));
                 }),
               ],
             ),
@@ -946,14 +916,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               children: [
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const TermosUsoScreen()));
+                    Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const TermosUsoScreen()));
                   },
                   style: TextButton.styleFrom(padding: EdgeInsets.zero, alignment: Alignment.centerLeft),
                   child: Text('Termos de Uso', style: TextStyle(color: primaryText, fontWeight: FontWeight.w600)),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const PoliticaPrivacidadeScreen()));
+                    Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const PoliticaPrivacidadeScreen()));
                   },
                   style: TextButton.styleFrom(padding: EdgeInsets.zero, alignment: Alignment.centerLeft),
                   child: Text('Política de Privacidade', style: TextStyle(color: primaryText, fontWeight: FontWeight.w600)),
@@ -1004,10 +974,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     required String title,
     required List<String> allItems,
     required List<String> selectedItems,
-    required Function(List<String>) onConfirm,
+    required void Function(List<String>) onConfirm,
   }) {
-    List<String> tempSelected = List.from(selectedItems);
-    showDialog(
+    final tempSelected = List<String>.from(selectedItems);
+    showDialog<void>(
       context: context,
       builder: (context) {
         return StatefulBuilder(

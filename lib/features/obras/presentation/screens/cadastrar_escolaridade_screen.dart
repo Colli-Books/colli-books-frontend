@@ -37,7 +37,7 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
   }
 
   void _confirmarExclusao(String item) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirmar Exclusão'),
@@ -75,7 +75,6 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
     const backgroundColor = Color(0xFFF9F5EC);
     const primaryTextColor = Color(0xFF4A2525);
     const buttonGreen = Color(0xFFA1A32D);
-    const buttonRed = Color(0xFFE56B6F);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -174,7 +173,7 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
                   ),
                 ],
               ),
-            )).toList(),
+            )),
           ],
         ),
       ),

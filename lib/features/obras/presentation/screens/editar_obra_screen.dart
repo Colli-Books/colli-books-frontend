@@ -25,11 +25,11 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedEscolaridades = List.from(widget.bookData['escolaridades'] ?? []);
-    _selectedTemas = List.from(widget.bookData['temas'] ?? []);
+    _selectedEscolaridades = List<String>.from((widget.bookData['escolaridades'] as Iterable?) ?? []);
+    _selectedTemas = List<String>.from((widget.bookData['temas'] as Iterable?) ?? []);
     
-    _titleController = TextEditingController(text: widget.bookData['title']);
-    _authorController = TextEditingController(text: widget.bookData['author']);
+    _titleController = TextEditingController(text: widget.bookData['title'] as String? ?? '');
+    _authorController = TextEditingController(text: widget.bookData['author'] as String? ?? '');
     _editoraController = TextEditingController(text: 'Agir');
     _isbnController = TextEditingController(text: '9788520922593');
     _anoController = TextEditingController(text: '2009');
@@ -344,10 +344,10 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
     required String title,
     required List<String> allItems,
     required List<String> selectedItems,
-    required Function(List<String>) onConfirm,
+    required void Function(List<String>) onConfirm,
   }) {
-    List<String> tempSelected = List.from(selectedItems);
-    showDialog(
+    final tempSelected = List<String>.from(selectedItems);
+    showDialog<void>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
