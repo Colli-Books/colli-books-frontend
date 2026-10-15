@@ -1,14 +1,12 @@
 class CatalogoData {
   static List<String> escolaridades = [
-    'Todos',
     'Educação Infantil',
-    'Fundamental I',
-    'Fundamental II',
+    'Ensino Fundamental I',
+    'Ensino Fundamental II',
     'Ensino Médio',
   ];
 
   static List<String> temas = [
-    'Todos',
     'Bullying',
     'Imaginação',
     'Higiene',
@@ -20,10 +18,21 @@ class CatalogoData {
 
   static List<Map<String, dynamic>> livros = [
     {
+      'title': 'O Mistério da Floresta',
+      'author': 'Ana Silva',
+      'escolaridades': ['Ensino Fundamental I', 'Ensino Fundamental II'],
+      'temas': ['Aventura', 'Mistério'],
+      'sinopse': 'Um grupo de amigos desvenda segredos ecológicos e a importância da preservação ambiental no coração da mata.',
+      'isbn': '978-85-209-2345-6',
+      'paginas': '104',
+      'ano': '2023',
+      'editora': 'Colli Books',
+      'image': 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80',
+    },
+    {
       'title': 'Aventuras na Matemática Vol. 1',
-      'tag': 'MATEMÁTICA • FUND. I',
       'author': 'Maria Silva, João Santos',
-      'escolaridades': ['Fundamental I'],
+      'escolaridades': ['Ensino Fundamental I'],
       'temas': ['Bullying', 'Imaginação'],
       'sinopse': 'Uma jornada divertida pelo mundo dos números, estimulando o raciocínio lógico e a cooperação entre os alunos em sala de aula.',
       'isbn': '978-85-209-1234-1',
@@ -34,9 +43,8 @@ class CatalogoData {
     },
     {
       'title': 'Caminhos da Leitura',
-      'tag': 'PORTUGUÊS • FUND. I',
       'author': 'Ana Oliveira',
-      'escolaridades': ['Fundamental I'],
+      'escolaridades': ['Ensino Fundamental I'],
       'temas': ['Imaginação', 'Bullying'],
       'sinopse': 'Contos e atividades pedagógicas dinâmicas para despertar o amor pela leitura e interpretação de texto.',
       'isbn': '978-85-209-5678-2',
@@ -47,9 +55,8 @@ class CatalogoData {
     },
     {
       'title': 'Ciências: Descobertas e Aventuras',
-      'tag': 'CIÊNCIAS • FUND. I',
       'author': 'Carlos Drummond',
-      'escolaridades': ['Fundamental I'],
+      'escolaridades': ['Ensino Fundamental I'],
       'temas': ['Higiene', 'Alimentação'],
       'sinopse': 'Explorações sobre o corpo humano, hábitos saudáveis e os mistérios da natureza para crianças curiosas.',
       'isbn': '978-85-209-9012-3',
@@ -60,7 +67,6 @@ class CatalogoData {
     },
     {
       'title': 'Histórias de Ninar e Imaginação',
-      'tag': 'LITERATURA • ED. INFANTIL',
       'author': 'Clarice Lispector',
       'escolaridades': ['Educação Infantil'],
       'temas': ['Imaginação', 'Inclusão'],
@@ -73,9 +79,8 @@ class CatalogoData {
     },
     {
       'title': 'O Pequeno Príncipe',
-      'tag': 'CLÁSSICO • FUND. II',
       'author': 'Antoine de Saint-Exupéry',
-      'escolaridades': ['Fundamental II'],
+      'escolaridades': ['Ensino Fundamental II'],
       'temas': ['Aventura', 'Inclusão'],
       'sinopse': 'Uma fábula sobre a amizade, a empatia e o verdadeiro sentido das coisas que são invisíveis aos olhos.',
       'isbn': '978-85-209-7890-4',
@@ -83,19 +88,6 @@ class CatalogoData {
       'ano': '2020',
       'editora': 'Colli Books',
       'image': 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&q=80',
-    },
-    {
-      'title': 'O Mistério da Floresta Encantada',
-      'tag': 'AVENTURA • FUND. I',
-      'author': 'Ana Silva',
-      'escolaridades': ['Fundamental I', 'Fundamental II'],
-      'temas': ['Aventura', 'Mistério'],
-      'sinopse': 'Um grupo de amigos desvenda segredos ecológicos e a importância da preservação ambiental no coração da mata.',
-      'isbn': '978-85-209-2345-6',
-      'paginas': '104',
-      'ano': '2023',
-      'editora': 'Colli Books',
-      'image': 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80',
     },
   ];
 }

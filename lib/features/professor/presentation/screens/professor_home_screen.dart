@@ -24,10 +24,10 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
   String _searchQuery = '';
-  String _selectedEscolaridade = 'Todos';
-  String _selectedTema = 'Todos';
+  List<String> _selectedEscolaridades = [];
+  List<String> _selectedTemas = [];
 
-  // Lista de livros selecionados/favoritados pelo professor
+  // Lista de livros selecionados/favoritados pelo educador
   final List<Map<String, dynamic>> _selecao = [];
 
   Future<void> _abrirLink(String urlStr) async {
@@ -60,6 +60,64 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
         );
       }
     });
+  }
+
+  void _showMultiSelectDialog({
+    required String title,
+    required List<String> allItems,
+    required List<String> selectedItems,
+    required void Function(List<String>) onConfirm,
+  }) {
+    final tempSelected = List<String>.from(selectedItems);
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text(title, style: const TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18)),
+              backgroundColor: const Color(0xFFF9F5EC),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: allItems.map((item) {
+                    return CheckboxListTile(
+                      title: Text(item, style: const TextStyle(color: Color(0xFF4A2525))),
+                      activeColor: const Color(0xFFA1A32D),
+                      value: tempSelected.contains(item),
+                      onChanged: (bool? checked) {
+                        setStateDialog(() {
+                          if (checked == true) {
+                            tempSelected.add(item);
+                          } else {
+                            tempSelected.remove(item);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    onConfirm(tempSelected);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFA1A32D)),
+                  child: const Text('Aplicar', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showBookDetails(Map<String, dynamic> book) {
@@ -114,16 +172,6 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        book['tag'] as String? ?? 'OBRA PEDAGÓGICA',
-                        style: const TextStyle(
-                          color: accentColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
                         book['title'] as String,
                         style: const TextStyle(
                           color: primaryTextColor,
@@ -149,17 +197,24 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                         style: const TextStyle(color: secondaryTextColor, fontSize: 14, height: 1.5),
                       ),
                       const SizedBox(height: 20),
+                      const Text(
+                        'Classificação e Temas',
+                        style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          ...((book['escolaridades'] as List<dynamic>?) ?? []).map((e) => Chip(
-                                label: Text(e.toString(), style: const TextStyle(fontSize: 12, color: primaryTextColor)),
-                                backgroundColor: const Color(0xFFEFE8D8),
+                          ...((book['escolaridades'] as List<dynamic>?) ?? []).map((e) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(color: const Color(0xFFD4E6F1), borderRadius: BorderRadius.circular(8)),
+                                child: Text(e.toString(), style: const TextStyle(fontSize: 12, color: Color(0xFF1F618D), fontWeight: FontWeight.bold)),
                               )),
-                          ...((book['temas'] as List<dynamic>?) ?? []).map((t) => Chip(
-                                label: Text(t.toString(), style: const TextStyle(fontSize: 12, color: accentColor, fontWeight: FontWeight.bold)),
-                                backgroundColor: const Color(0xFFF3EFE4),
+                          ...((book['temas'] as List<dynamic>?) ?? []).map((t) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(color: const Color(0xFFFDEBD0), borderRadius: BorderRadius.circular(8)),
+                                child: Text(t.toString(), style: const TextStyle(fontSize: 12, color: Color(0xFFD35400), fontWeight: FontWeight.bold)),
                               )),
                         ],
                       ),
@@ -285,8 +340,8 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          _buildColliBooksHome(),
-          _buildSelecao(),
+          _buildColliBooksHome(primaryTextColor, secondaryTextColor),
+          _buildSelecao(primaryTextColor, secondaryTextColor),
           _buildPerfil(primaryTextColor, secondaryTextColor),
         ],
       ),
@@ -301,9 +356,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
     );
   }
 
-  Widget _buildColliBooksHome() {
-    const primaryTextColor = Color(0xFF331212);
-    const secondaryTextColor = Color(0xFF8C7A70);
+  Widget _buildColliBooksHome(Color primaryText, Color secondaryText) {
     const accentColor = Color(0xFFA1A32D);
 
     final filtered = CatalogoData.livros.where((Map<String, dynamic> book) {
@@ -314,267 +367,263 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
       final matchesSearch = query.isEmpty || title.contains(query) || author.contains(query) || isbn.contains(query);
 
       final bookEsc = (book['escolaridades'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
-      final matchesEsc = _selectedEscolaridade == 'Todos' || bookEsc.contains(_selectedEscolaridade);
+      final matchesEsc = _selectedEscolaridades.isEmpty || _selectedEscolaridades.any((e) => bookEsc.contains(e));
 
       final bookTemas = (book['temas'] as List<dynamic>?)?.map((t) => t.toString()).toList() ?? [];
-      final matchesTema = _selectedTema == 'Todos' || bookTemas.contains(_selectedTema);
+      final matchesTema = _selectedTemas.isEmpty || _selectedTemas.any((t) => bookTemas.contains(t));
 
       return matchesSearch && matchesEsc && matchesTema;
     }).toList();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // BARRA DE PESQUISA
-          Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFD6D6D6)),
-            ),
-            child: TextField(
-              onChanged: (val) => setState(() => _searchQuery = val),
-              decoration: const InputDecoration(
-                hintText: 'Pesquisar por título, autor, ISBN...',
-                hintStyle: TextStyle(color: Color(0xFF8C7A70), fontSize: 14),
-                prefixIcon: Icon(Icons.search, color: Color(0xFF8C7A70), size: 22),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              ),
+          // BARRA DE PESQUISA (IGUAL AO ADMIN)
+          TextField(
+            onChanged: (val) {
+              setState(() {
+                _searchQuery = val;
+              });
+            },
+            decoration: InputDecoration(
+              hintText: 'Buscar por título ou autor...',
+              hintStyle: TextStyle(color: secondaryText, fontSize: 14),
+              prefixIcon: Icon(Icons.search, color: secondaryText),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEBE8E0))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEBE8E0))),
+              focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)), borderSide: BorderSide(color: accentColor)),
             ),
           ),
           const SizedBox(height: 16),
 
-          // FILTRO 1: ESCOLARIDADE (HORIZONTAL)
-          SizedBox(
-            height: 38,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: CatalogoData.escolaridades.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final esc = CatalogoData.escolaridades[index];
-                final isSelected = _selectedEscolaridade == esc;
-                return ChoiceChip(
+          // BOTÕES DE FILTROS LADO A LADO (IGUAL AO ADMIN)
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: const BorderSide(color: Color(0xFFEBE8E0)),
+                    backgroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.filter_list, size: 16, color: Color(0xFF4A2525)),
                   label: Text(
-                    esc,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : primaryTextColor,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      fontSize: 13,
-                    ),
+                    _selectedEscolaridades.isEmpty ? 'Escolaridades' : 'Escolaridades (${_selectedEscolaridades.length})',
+                    style: const TextStyle(color: Color(0xFF4A2525), fontSize: 12, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  selected: isSelected,
-                  selectedColor: accentColor,
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: isSelected ? accentColor : const Color(0xFFD6D6D6)),
-                  ),
-                  showCheckmark: false,
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedEscolaridade = esc;
-                    });
+                  onPressed: () {
+                    _showMultiSelectDialog(
+                      title: 'Filtrar por Escolaridade',
+                      allItems: CatalogoData.escolaridades,
+                      selectedItems: _selectedEscolaridades,
+                      onConfirm: (results) {
+                        setState(() {
+                          _selectedEscolaridades = results;
+                        });
+                      },
+                    );
                   },
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // FILTRO 2: TEMAS (HORIZONTAL)
-          SizedBox(
-            height: 38,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: CatalogoData.temas.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final tema = CatalogoData.temas[index];
-                final isSelected = _selectedTema == tema;
-                return ChoiceChip(
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: const BorderSide(color: Color(0xFFEBE8E0)),
+                    backgroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.filter_list, size: 16, color: Color(0xFF4A2525)),
                   label: Text(
-                    tema,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : primaryTextColor,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      fontSize: 13,
-                    ),
+                    _selectedTemas.isEmpty ? 'Temas' : 'Temas (${_selectedTemas.length})',
+                    style: const TextStyle(color: Color(0xFF4A2525), fontSize: 12, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  selected: isSelected,
-                  selectedColor: accentColor,
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: isSelected ? accentColor : const Color(0xFFD6D6D6)),
-                  ),
-                  showCheckmark: false,
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedTema = tema;
-                    });
+                  onPressed: () {
+                    _showMultiSelectDialog(
+                      title: 'Filtrar por Tema',
+                      allItems: CatalogoData.temas,
+                      selectedItems: _selectedTemas,
+                      onConfirm: (results) {
+                        setState(() {
+                          _selectedTemas = results;
+                        });
+                      },
+                    );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // GRID DE LIVROS (2 COLUNAS)
+          // CONTADOR DE LIVROS ENCONTRADOS
+          Text(
+            '${filtered.length} obra(s) encontrada(s)',
+            style: TextStyle(color: secondaryText, fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          // LISTA DE LIVROS (VISUALMENTE IDÊNTICO AO ADMIN, COM BOTÃO DE FAVORITO)
           if (filtered.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 48),
                 child: Column(
-                  children: const [
-                    Icon(Icons.search_off, size: 48, color: secondaryTextColor),
-                    SizedBox(height: 12),
+                  children: [
+                    Icon(Icons.search_off, size: 48, color: secondaryText),
+                    const SizedBox(height: 12),
                     Text(
-                      'Nenhuma obra encontrada para este filtro.',
-                      style: TextStyle(color: secondaryTextColor, fontSize: 14),
+                      'Nenhuma obra encontrada para esta pesquisa.',
+                      style: TextStyle(color: secondaryText, fontSize: 14),
                     ),
                   ],
                 ),
               ),
             )
           else
-            GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
+            ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: filtered.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.58,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 16,
-              ),
               itemBuilder: (context, index) {
                 final book = filtered[index];
-                final isBookmarked = _selecao.any((b) => b['title'] == book['title']);
-
-                return GestureDetector(
-                  onTap: () => _showBookDetails(book),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFEBE8E0)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // CAPA DO LIVRO COM BOTÃO DE SALVAR
-                        Expanded(
-                          flex: 7,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.network(
-                                book['image'] as String? ?? '',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: const Color(0xFFF3EFE4),
-                                  child: const Center(
-                                    child: Icon(Icons.menu_book, color: accentColor, size: 36),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: InkWell(
-                                  onTap: () => _toggleSelecao(book),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.9),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                      color: isBookmarked ? accentColor : const Color(0xFF8C7A70),
-                                      size: 18,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // INFORMAÇÕES
-                        Expanded(
-                          flex: 5,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  book['tag'] as String? ?? 'ENSINO FUNDAMENTAL',
-                                  style: const TextStyle(
-                                    color: accentColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  book['title'] as String,
-                                  style: const TextStyle(
-                                    color: primaryTextColor,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.2,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  book['author'] as String,
-                                  style: const TextStyle(
-                                    color: secondaryTextColor,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                return _buildBookCard(book, primaryText, secondaryText);
               },
             ),
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildSelecao() {
-    const primaryTextColor = Color(0xFF331212);
-    const secondaryTextColor = Color(0xFF8C7A70);
+  Widget _buildBookCard(Map<String, dynamic> book, Color primaryText, Color secondaryText) {
+    const accentColor = Color(0xFFA1A32D);
+    final bookEscolaridades = (book['escolaridades'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    final bookTemas = (book['temas'] as List<dynamic>?)?.map((t) => t.toString()).toList() ?? [];
+    final isBookmarked = _selecao.any((b) => b['title'] == book['title']);
+
+    return GestureDetector(
+      onTap: () => _showBookDetails(book),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3EFE4),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFEBE8E0)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // CAPA DA OBRA
+            Container(
+              width: 100,
+              height: 140,
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.network(
+                book['image'] as String? ?? '',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Center(
+                  child: Icon(Icons.menu_book, size: 32, color: Colors.grey),
+                ),
+              ),
+            ),
+            // INFORMAÇÕES
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            book['title'] as String,
+                            style: TextStyle(color: primaryText, fontWeight: FontWeight.bold, fontSize: 16),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // BOTÃO DE ADICIONAR/REMOVER DA SELEÇÃO (NO LUGAR DE EDITAR/EXCLUIR)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFEBE8E0)),
+                          ),
+                          child: InkWell(
+                            onTap: () => _toggleSelecao(book),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Icon(
+                                isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
+                                size: 18,
+                                color: isBookmarked ? accentColor : const Color(0xFF4A2525),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      book['author'] as String,
+                      style: TextStyle(color: secondaryText, fontSize: 14, fontWeight: FontWeight.w500),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    // BADGES DE ESCOLARIDADE (AZUIS)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: bookEscolaridades
+                          .map((e) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(color: const Color(0xFFD4E6F1), borderRadius: BorderRadius.circular(8)),
+                                child: Text(e, style: const TextStyle(fontSize: 10, color: Color(0xFF1F618D), fontWeight: FontWeight.bold)),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 6),
+                    // BADGES DE TEMAS (LARANJAS)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: bookTemas
+                          .map((t) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(color: const Color(0xFFFDEBD0), borderRadius: BorderRadius.circular(8)),
+                                child: Text(t, style: const TextStyle(fontSize: 10, color: Color(0xFFD35400), fontWeight: FontWeight.bold)),
+                              ))
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelecao(Color primaryText, Color secondaryText) {
     const accentColor = Color(0xFFA1A32D);
 
     if (_selecao.isEmpty) {
@@ -593,15 +642,15 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                 child: const Icon(Icons.bookmark_outline, size: 56, color: accentColor),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Sua Seleção está vazia',
-                style: TextStyle(color: primaryTextColor, fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(color: primaryText, fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Navegue pelo acervo de ColliBooks e salve as obras que deseja utilizar em seus projetos pedagógicos.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: secondaryTextColor, fontSize: 14, height: 1.4),
+                style: TextStyle(color: secondaryText, fontSize: 14, height: 1.4),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -620,111 +669,27 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Minha Seleção (${_selecao.length})',
-            style: const TextStyle(color: primaryTextColor, fontSize: 22, fontWeight: FontWeight.w800),
+            style: TextStyle(color: primaryText, fontSize: 22, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Livros separados para suas turmas e planos de aula.',
-            style: TextStyle(color: secondaryTextColor, fontSize: 14),
+          Text(
+            'Livros selecionados para suas turmas e planos de aula.',
+            style: TextStyle(color: secondaryText, fontSize: 14),
           ),
           const SizedBox(height: 20),
-          GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
+          ListView.builder(
             shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: _selecao.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.58,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 16,
-            ),
             itemBuilder: (context, index) {
               final book = _selecao[index];
-              return GestureDetector(
-                onTap: () => _showBookDetails(book),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEBE8E0)),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 7,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.network(
-                              book['image'] as String? ?? '',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                color: const Color(0xFFF3EFE4),
-                                child: const Center(child: Icon(Icons.menu_book, color: accentColor, size: 36)),
-                              ),
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: InkWell(
-                                onTap: () => _toggleSelecao(book),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.bookmark_remove, color: Color(0xFFC62828), size: 18),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        flex: 5,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                book['tag'] as String? ?? 'FUNDAMENTAL I',
-                                style: const TextStyle(color: accentColor, fontSize: 10, fontWeight: FontWeight.w800),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                book['title'] as String,
-                                style: const TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w800),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                book['author'] as String,
-                                style: const TextStyle(color: secondaryTextColor, fontSize: 11),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+              return _buildBookCard(book, primaryText, secondaryText);
             },
           ),
         ],
