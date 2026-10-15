@@ -20,12 +20,12 @@ class NavbarProfessor extends StatelessWidget {
         BottomNavigationBarItem(
           icon: Icon(Icons.home_outlined),
           activeIcon: Icon(Icons.home),
-          label: 'Início',
+          label: 'ColliBooks',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.menu_book_outlined),
-          activeIcon: Icon(Icons.menu_book),
-          label: 'Catálogo',
+          icon: Icon(Icons.bookmark_outline),
+          activeIcon: Icon(Icons.bookmark),
+          label: 'Seleção',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
