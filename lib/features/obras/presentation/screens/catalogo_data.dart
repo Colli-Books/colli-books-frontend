@@ -14,6 +14,13 @@ class CatalogoData {
     'Aventura',
     'Mistério',
     'Inclusão',
+    'Diversidade',
+    'Representatividade',
+    'Empatia',
+    'Amizade',
+    'Arte e Expressão Corporal',
+    'Autoestima',
+    'Cooperação',
   ];
 
   static List<Map<String, dynamic>> livros = [
@@ -22,8 +29,16 @@ class CatalogoData {
       'author': 'Andréa Avelar',
       'ilustracoes': 'Rosy Albuquerque',
       'escolaridades': ['Educação Infantil', 'Ensino Fundamental I'],
-      'temas': ['Imaginação', 'Inclusão'],
-      'tags': ['INFANTIL', 'ARTE', 'DIVERSIDADE'],
+      'temas': [
+        'Diversidade',
+        'Inclusão',
+        'Representatividade',
+        'Empatia',
+        'Amizade',
+        'Arte e Expressão Corporal',
+        'Autoestima',
+        'Cooperação',
+      ],
       'sinopse':
           'Aurora ama dançar balé. Quando suas sapatilhas tocam o chão, tudo parece entrar no ritmo da alegria. Mas um segredo guardado quase tira dela a chance de subir ao palco. Com emoção e delicadeza, O Segredo de Aurora mostra que a arte existe para acolher, unir pessoas e fazer cada criança acreditar que também pode brilhar.',
       'isbn': '978-65-6079-046-9',
@@ -36,10 +51,37 @@ class CatalogoData {
       'lpUrl': 'https://www.collibooks.com/o-segredo-de-aurora-lp/',
       'disciplinas': [
         'Língua Portuguesa',
-        'Artes',
+        'Arte',
         'Educação Física',
-        'Desenvolvimento Socioemocional',
+        'História e Cultura',
+        'Educação Socioemocional',
       ],
+      'interdisciplinaridade': {
+        'Língua Portuguesa': [
+          'Leitura e interpretação de texto',
+          'Análise de personagens',
+          'Produção de narrativas',
+        ],
+        'Arte': [
+          'Dança e expressão corporal',
+          'Criação artística inspirada na história',
+          'Interpretação de imagens',
+        ],
+        'Educação Física': [
+          'Movimentos de dança',
+          'Coordenação corporal',
+          'Consciência corporal',
+        ],
+        'História e Cultura': [
+          'Diversidade cultural na arte',
+          'História do balé',
+        ],
+        'Educação Socioemocional': [
+          'Empatia',
+          'Respeito às diferenças',
+          'Convivência',
+        ],
+      },
       'materiais': [
         {
           'title': 'Ficha Pedagógica',
