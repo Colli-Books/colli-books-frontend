@@ -268,74 +268,11 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
           icon: const Icon(Icons.menu, color: primaryTextColor, size: 28),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/logo.png',
-              height: 36,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.spa,
-                color: Color(0xFFA1A32D),
-                size: 32,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'COLLI',
-                      style: TextStyle(
-                        color: primaryTextColor,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                        letterSpacing: 1.0,
-                        height: 1.0,
-                      ),
-                    ),
-                    SizedBox(width: 3),
-                    Text(
-                      'BOOKS',
-                      style: TextStyle(
-                        color: primaryTextColor,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                        letterSpacing: 1.0,
-                        height: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  'e d i t o r a',
-                  style: TextStyle(
-                    color: Color(0xFFA1A32D),
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                    height: 1.1,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        title: Image.asset(
+          'imagens/Logo-Colli-Booksteste.webp',
+          height: 38,
+          fit: BoxFit.contain,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: primaryTextColor, size: 30),
-            onPressed: () {
-              setState(() {
-                _selectedIndex = 2; // Ir para a aba de Perfil
-              });
-            },
-          ),
-        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,

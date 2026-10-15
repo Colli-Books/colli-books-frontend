@@ -5,7 +5,7 @@ import 'features/auth/presentation/screens/login_screen.dart';
 void main() {
   runApp(
     DevicePreview(
-      enabled: true, // Habilita o preview com a moldura de celular
+      enabled: false, // Desabilitado para economizar recursos e aliviar o PC
       builder: (context) => const MyApp(),
     ),
   );

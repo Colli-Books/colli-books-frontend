@@ -55,38 +55,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: primaryTextColor),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Placeholder for Logo, you can replace with Image.asset later
-            Icon(Icons.spa_outlined, color: accentColor, size: 28),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'COLLI',
-                  style: TextStyle(
-                    color: primaryTextColor,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    height: 1.0,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const Text(
-                  'BOOKS',
-                  style: TextStyle(
-                    color: primaryTextColor,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    height: 1.0,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        title: Image.asset(
+          'imagens/Logo-Colli-Booksteste.webp',
+          height: 38,
+          fit: BoxFit.contain,
         ),
       ),
       body: _selectedIndex == 3
