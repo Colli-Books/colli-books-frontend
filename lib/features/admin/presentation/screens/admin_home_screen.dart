@@ -33,12 +33,49 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     {'nome': 'Marcos Nogueira', 'email': 'marcos.n@email.com', 'escola': 'Colégio Santa Maria', 'status': 'Ativo', 'data': 'Entrou em 10/02/2023', 'iniciais': 'MN'},
   ];
 
-  List<Map<String, dynamic>> catalogBooks = [
-    {'title': 'O Mistério da Floresta', 'author': 'Ana Silva', 'escolaridades': ['Ensino Fundamental I', 'Ensino Fundamental II'], 'temas': ['Aventura', 'Mistério'], 'image': 'https://via.placeholder.com/150'},
-    {'title': 'O Pequeno Príncipe', 'author': 'Antoine de S.', 'escolaridades': ['Ensino Fundamental II'], 'temas': ['Ficção Científica'], 'image': 'https://via.placeholder.com/150'},
-    {'title': 'Aventuras no Espaço', 'author': 'Marcos', 'escolaridades': ['Ensino Fundamental I'], 'temas': ['Ficção Científica', 'Aventura'], 'image': 'https://via.placeholder.com/150'},
-    {'title': 'Histórias de Ninar', 'author': 'Clarice', 'escolaridades': ['Educação Infantil'], 'temas': ['Mistério', 'Inclusão'], 'image': 'https://via.placeholder.com/150'},
-  ];
+  List<Map<String, dynamic>> catalogBooks = List<Map<String, dynamic>>.from(CatalogoData.livros);
+
+  Widget _buildBookImage(
+    String? imagePath, {
+    double? height,
+    double? width,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return Container(
+        height: height,
+        width: width,
+        color: const Color(0xFFEBE8E0),
+        child: const Icon(Icons.menu_book, color: Color(0xFFA1A32D), size: 36),
+      );
+    }
+    if (imagePath.startsWith('imagens/') || imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: height,
+          width: width,
+          color: const Color(0xFFEBE8E0),
+          child: const Icon(Icons.menu_book, color: Color(0xFFA1A32D), size: 36),
+        ),
+      );
+    }
+    return Image.network(
+      imagePath,
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) => Container(
+        height: height,
+        width: width,
+        color: const Color(0xFFEBE8E0),
+        child: const Icon(Icons.menu_book, color: Color(0xFFA1A32D), size: 36),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -611,7 +648,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         color: Colors.grey[300],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+                      clipBehavior: Clip.antiAlias,
+                      child: _buildBookImage(
+                        book['image'] as String?,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                     Expanded(
                       child: Padding(

@@ -120,8 +120,49 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
     );
   }
 
+  Widget _buildBookImage(
+    String? imagePath, {
+    double? height,
+    double? width,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return Container(
+        height: height,
+        width: width,
+        color: const Color(0xFFEBE8E0),
+        child: const Icon(Icons.menu_book, color: Color(0xFFA1A32D), size: 40),
+      );
+    }
+    if (imagePath.startsWith('imagens/') || imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: height,
+          width: width,
+          color: const Color(0xFFEBE8E0),
+          child: const Icon(Icons.menu_book, color: Color(0xFFA1A32D), size: 40),
+        ),
+      );
+    }
+    return Image.network(
+      imagePath,
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) => Container(
+        height: height,
+        width: width,
+        color: const Color(0xFFEBE8E0),
+        child: const Icon(Icons.menu_book, color: Color(0xFFA1A32D), size: 40),
+      ),
+    );
+  }
+
   void _showBookDetails(Map<String, dynamic> book) {
-    final isSelected = _selecao.any((b) => b['title'] == book['title']);
     const primaryTextColor = Color(0xFF331212);
     const secondaryTextColor = Color(0xFF8C7A70);
     const accentColor = Color(0xFFA1A32D);
@@ -131,120 +172,491 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF9F5EC),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 48,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD6D6D6),
-                  borderRadius: BorderRadius.circular(10),
-                ),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isSelected = _selecao.any((b) => b['title'] == book['title']);
+            final tags = (book['tags'] as List<dynamic>?)?.map((t) => t.toString().toUpperCase()).toList() ??
+                (book['temas'] as List<dynamic>?)?.map((t) => t.toString().toUpperCase()).toList() ??
+                ['INFANTIL'];
+            final disciplinas = (book['disciplinas'] as List<dynamic>?)?.map((d) => d.toString()).toList() ??
+                ['Língua Portuguesa', 'Artes'];
+            final materiais = (book['materiais'] as List<dynamic>?) ?? [];
+            final storeUrl = book['storeUrl'] as String? ?? 'https://www.collibooksloja.com/';
+            final paginas = book['paginas']?.toString() ?? '38';
+            final edicao = book['edicao']?.toString() ?? '1ª';
+            final isbn = book['isbn']?.toString() ?? '978-65-6079-046-9';
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.90,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF9F5EC),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            book['image'] as String? ?? '',
-                            height: 200,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              height: 200,
-                              width: 140,
-                              color: const Color(0xFFEBE8E0),
-                              child: const Icon(Icons.menu_book, color: accentColor, size: 48),
+              child: Column(
+                children: [
+                  // Drag Handle
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    width: 48,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD6D6D6),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. CAPA DA OBRA COM BORDA E SOMBRA SUAVE (Igual print 1)
+                          Center(
+                            child: Container(
+                              constraints: const BoxConstraints(maxHeight: 320, maxWidth: 280),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: _buildBookImage(
+                                  book['image'] as String?,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        book['title'] as String,
-                        style: const TextStyle(
-                          color: primaryTextColor,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Autor(a): ${book['author']}',
-                        style: const TextStyle(color: secondaryTextColor, fontSize: 14, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 16),
-                      const Divider(color: Color(0xFFEBE8E0)),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Sinopse da Obra',
-                        style: TextStyle(color: primaryTextColor, fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        book['sinopse'] as String? ?? 'Sem sinopse disponível para esta obra.',
-                        style: const TextStyle(color: secondaryTextColor, fontSize: 14, height: 1.5),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Classificação e Temas',
-                        style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ...((book['escolaridades'] as List<dynamic>?) ?? []).map((e) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(color: const Color(0xFFD4E6F1), borderRadius: BorderRadius.circular(8)),
-                                child: Text(e.toString(), style: const TextStyle(fontSize: 12, color: Color(0xFF1F618D), fontWeight: FontWeight.bold)),
-                              )),
-                          ...((book['temas'] as List<dynamic>?) ?? []).map((t) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(color: const Color(0xFFFDEBD0), borderRadius: BorderRadius.circular(8)),
-                                child: Text(t.toString(), style: const TextStyle(fontSize: 12, color: Color(0xFFD35400), fontWeight: FontWeight.bold)),
-                              )),
+                          const SizedBox(height: 24),
+
+                          // 2. BOTÃO 1: COMPRAR NA LOJA (Olive green filled)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _abrirLink(storeUrl),
+                              icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+                              label: const Text(
+                                'Comprar na Loja',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: accentColor,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // 3. BOTÃO 2: SALVAR / REMOVER DA SELEÇÃO (Outlined olive green)
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                _toggleSelecao(book);
+                                setModalState(() {});
+                              },
+                              icon: Icon(
+                                isSelected ? Icons.bookmark_remove : Icons.bookmark_border,
+                                color: isSelected ? const Color(0xFFC62828) : accentColor,
+                                size: 20,
+                              ),
+                              label: Text(
+                                isSelected ? 'Remover da Seleção' : 'Salvar na Seleção',
+                                style: TextStyle(
+                                  color: isSelected ? const Color(0xFFC62828) : accentColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: isSelected ? const Color(0xFFC62828) : accentColor,
+                                  width: 1.5,
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // 4. TAGS / CATEGORIAS (Ex: INFANTIL, AVENTURA)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: tags.map((t) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF0EAE1),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  t,
+                                  style: const TextStyle(
+                                    color: Color(0xFF7A4A28),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 5. TÍTULO E AUTOR(A)
+                          Text(
+                            book['title'] as String,
+                            style: const TextStyle(
+                              color: accentColor,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Por ${book['author']}',
+                            style: const TextStyle(
+                              color: primaryTextColor,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (book['ilustracoes'] != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              'Ilustrações: ${book['ilustracoes']}',
+                              style: const TextStyle(
+                                color: secondaryTextColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          const Divider(color: Color(0xFFEBE8E0)),
+                          const SizedBox(height: 16),
+
+                          // 6. SINOPSE
+                          const Text(
+                            'Sinopse',
+                            style: TextStyle(
+                              color: primaryTextColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            book['sinopse'] as String? ?? 'Sem sinopse disponível para esta obra.',
+                            style: const TextStyle(
+                              color: Color(0xFF4A3B32),
+                              fontSize: 15,
+                              height: 1.55,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // 7. CARD: MATERIAL PEDAGÓGICO (Com barra verde lateral - Print 2)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFEBE8E0)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Container(width: 6, color: accentColor),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Row(
+                                              children: [
+                                                Icon(Icons.school_outlined, color: accentColor, size: 24),
+                                                SizedBox(width: 10),
+                                                Text(
+                                                  'Material Pedagógico',
+                                                  style: TextStyle(
+                                                    color: primaryTextColor,
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            const Text(
+                                              'Recursos exclusivos desenvolvidos para apoiar o planejamento do professor e enriquecer o trabalho em sala de aula.',
+                                              style: TextStyle(
+                                                color: secondaryTextColor,
+                                                fontSize: 13,
+                                                height: 1.4,
+                                              ),
+                                            ),
+                                            if (materiais.isNotEmpty) ...[
+                                              const SizedBox(height: 16),
+                                              ...materiais.map((m) {
+                                                final mat = m as Map<String, dynamic>;
+                                                return Container(
+                                                  margin: const EdgeInsets.only(bottom: 12),
+                                                  padding: const EdgeInsets.all(12),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFF9F5EC),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                    border: Border.all(color: const Color(0xFFEBE8E0)),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        mat['title']?.toString() ?? '',
+                                                        style: const TextStyle(
+                                                          color: primaryTextColor,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        mat['desc']?.toString() ?? '',
+                                                        style: const TextStyle(
+                                                          color: secondaryTextColor,
+                                                          fontSize: 12,
+                                                          height: 1.3,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 10),
+                                                      Align(
+                                                        alignment: Alignment.centerRight,
+                                                        child: ElevatedButton.icon(
+                                                          onPressed: () => _abrirLink(mat['url']?.toString() ?? ''),
+                                                          icon: const Icon(Icons.picture_as_pdf, color: Colors.white, size: 16),
+                                                          label: const Text(
+                                                            'Abrir PDF',
+                                                            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                                          ),
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: accentColor,
+                                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(10),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }),
+                                            ],
+                                            if (book['lpUrl'] != null) ...[
+                                              const SizedBox(height: 8),
+                                              TextButton.icon(
+                                                onPressed: () => _abrirLink(book['lpUrl'] as String),
+                                                icon: const Icon(Icons.open_in_new, size: 16, color: accentColor),
+                                                label: const Text(
+                                                  'Acessar página completa da obra (LP)',
+                                                  style: TextStyle(
+                                                    color: accentColor,
+                                                    fontWeight: FontWeight.bold,
+                                                    decoration: TextDecoration.underline,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // 8. CARDS DE ESPECIFICAÇÕES: PÁGINAS, EDIÇÃO, ISBN (Print 3)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: const Color(0xFFEBE8E0)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'PÁGINAS',
+                                        style: TextStyle(
+                                          color: secondaryTextColor,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        paginas,
+                                        style: const TextStyle(
+                                          color: primaryTextColor,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: const Color(0xFFEBE8E0)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'EDIÇÃO',
+                                        style: TextStyle(
+                                          color: secondaryTextColor,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        edicao,
+                                        style: const TextStyle(
+                                          color: primaryTextColor,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFEBE8E0)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'ISBN',
+                                  style: TextStyle(
+                                    color: secondaryTextColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  isbn,
+                                  style: const TextStyle(
+                                    color: primaryTextColor,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // 9. DISCIPLINAS ATENDIDAS (Print 3)
+                          const Text(
+                            'DISCIPLINAS ATENDIDAS',
+                            style: TextStyle(
+                              color: Color(0xFF6B5B53),
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: disciplinas.map((d) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: const Color(0xFFD8D2C6)),
+                                ),
+                                child: Text(
+                                  d,
+                                  style: const TextStyle(
+                                    color: primaryTextColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 36),
                         ],
                       ),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _toggleSelecao(book);
-                          },
-                          icon: Icon(isSelected ? Icons.bookmark_remove : Icons.bookmark_add, color: Colors.white),
-                          label: Text(
-                            isSelected ? 'Remover da Minha Seleção' : 'Adicionar à Minha Seleção',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isSelected ? const Color(0xFFC62828) : accentColor,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -469,12 +881,9 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               clipBehavior: Clip.antiAlias,
-              child: Image.network(
-                book['image'] as String? ?? '',
+              child: _buildBookImage(
+                book['image'] as String?,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Center(
-                  child: Icon(Icons.menu_book, size: 32, color: Colors.grey),
-                ),
               ),
             ),
             // INFORMAÇÕES
