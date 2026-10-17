@@ -37,7 +37,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
   }
 
   void _confirmarExclusao(String item) {
-    showDialog<void>(
+    showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirmar Exclusão'),
@@ -75,6 +75,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
     const backgroundColor = Color(0xFFF9F5EC);
     const primaryTextColor = Color(0xFF4A2525);
     const buttonGreen = Color(0xFFA1A32D);
+    const buttonRed = Color(0xFFE56B6F);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -173,7 +174,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
                   ),
                 ],
               ),
-            )),
+            )).toList(),
           ],
         ),
       ),

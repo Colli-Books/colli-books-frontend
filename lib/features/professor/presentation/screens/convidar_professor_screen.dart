@@ -13,7 +13,7 @@ class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
   void _enviarConvite() {
     final email = _emailController.text.trim();
     if (email.isNotEmpty && email.contains('@')) {
-      showDialog<void>(
+      showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Confirmar Envio', style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold)),
@@ -61,6 +61,7 @@ class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
     const primaryTextColor = Color(0xFF4A2525);
     const secondaryTextColor = Color(0xFF6B6B6B);
     const buttonGreen = Color(0xFFA1A32D);
+    const buttonRed = Color(0xFFE56B6F);
 
     return Scaffold(
       backgroundColor: backgroundColor,

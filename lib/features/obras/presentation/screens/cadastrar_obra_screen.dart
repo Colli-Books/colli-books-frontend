@@ -48,6 +48,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     const primaryTextColor = Color(0xFF4A2525);
     const secondaryTextColor = Color(0xFF6B6B6B);
     const buttonGreen = Color(0xFFA1A32D);
+    const buttonRed = Color(0xFFE56B6F);
     const borderColor = Color(0xFFD6D6D6);
 
     return Scaffold(
@@ -311,10 +312,10 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     required String title,
     required List<String> allItems,
     required List<String> selectedItems,
-    required void Function(List<String>) onConfirm,
+    required Function(List<String>) onConfirm,
   }) {
-    final tempSelected = List<String>.from(selectedItems);
-    showDialog<void>(
+    List<String> tempSelected = List.from(selectedItems);
+    showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(

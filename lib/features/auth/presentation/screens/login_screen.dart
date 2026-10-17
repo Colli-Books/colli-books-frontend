@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../admin/presentation/screens/admin_home_screen.dart';
-import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
+import 'fale_conosco_screen.dart';
+import 'admin_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (email == 'admin' && senha == '123') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute<void>(builder: (context) => const AdminHomeScreen()),
+        MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -242,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute<void>(builder: (context) => const FaleConoscoScreen()),
+                        MaterialPageRoute(builder: (context) => const FaleConoscoScreen()),
                       );
                     },
                     borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
