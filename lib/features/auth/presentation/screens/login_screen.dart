@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import 'fale_conosco_screen.dart';
-import 'admin_home_screen.dart';
+
+import '../../../../core/theme/colors.dart';
+import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/botaoPrincipal.dart';
+// Imports corrigidos para navegar entre as "features"
+import '../../../admin/presentation/screens/admin_home_screen.dart';
+import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final senha = _passwordController.text;
 
+    // Lógica provisória de autenticação
     if (email == 'admin' && senha == '123') {
       Navigator.pushReplacement(
         context,
@@ -27,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Credenciais incorretas! Tente admin / 123'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -42,26 +48,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Cores extraídas do design
-    const backgroundColor = Color(0xFFF3EFE4); // Fundo bege claro
-    const cardTopColor = Color(0xFFF8F5EE); // Bege um pouco mais claro pro topo do card
-    const cardBottomColor = Colors.white;
-    const primaryTextColor = Color(0xFF331212); // Marrom escuro do título
-    const labelColor = Color(0xFF1D1C13); // Cor das labels E-mail e Senha
-    const buttonColor = Color(0xFFA1A32D); // Verde/Amarelo do botão
-    const linkColor = Color(0xFF1D8E9E); // Azul do "Esqueci minha senha"
-
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor:
+          AppColors.surface, // Usamos o nosso bege claro do sistema
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSizes.spacingLg),
             child: Container(
-              width: 400, // Largura máxima do card
+              width: 400, // Largura máxima do card de login mantida
               decoration: BoxDecoration(
-                color: cardBottomColor,
-                borderRadius: BorderRadius.circular(16),
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(AppSizes.radiusLg),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -76,12 +74,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   // PARTE SUPERIOR DO CARD (Logo e Título)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 40,
+                      horizontal: AppSizes.spacingLg,
+                    ),
                     decoration: const BoxDecoration(
-                      color: cardTopColor,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      color: AppColors
+                          .inputBackground, // Bege de destaque para o topo
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(AppSizes.radiusLg),
+                      ),
                       border: Border(
-                        bottom: BorderSide(color: Color(0xFFEBE8E0), width: 1),
+                        bottom: BorderSide(color: AppColors.border, width: 1),
                       ),
                     ),
                     child: Column(
@@ -92,13 +96,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 64,
                           fit: BoxFit.contain,
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: AppSizes.spacingXl),
                         const Text(
                           'Bem-vindo ao Portal Colli\nBooks',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: primaryTextColor,
-                            fontSize: 24,
+                            color: AppColors.titleText,
+                            fontSize: AppSizes.fontHeading,
                             fontWeight: FontWeight.w700,
                             height: 1.3,
                           ),
@@ -109,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // PARTE INFERIOR DO CARD (Formulário)
                   Padding(
-                    padding: const EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.all(AppSizes.spacingXl),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -117,32 +121,47 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Text(
                           'E-mail',
                           style: TextStyle(
-                            color: labelColor,
-                            fontSize: 14,
+                            color: AppColors.textPrimary,
+                            fontSize: AppSizes.fontBody,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSizes.spacingSm),
                         TextField(
                           controller: _emailController,
                           decoration: InputDecoration(
                             hintText: 'seu@email.com',
-                            prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                            prefixIcon: const Icon(
+                              Icons.email_outlined,
+                              color: AppColors.textSecondary,
+                            ),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusSm,
+                              ),
+                              borderSide: const BorderSide(
+                                color: AppColors.divider,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusSm,
+                              ),
+                              borderSide: const BorderSide(
+                                color: AppColors.divider,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: buttonColor),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusSm,
+                              ),
+                              borderSide: const BorderSide(
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppSizes.spacingLg),
 
                         // Campo de Senha
                         Row(
@@ -151,8 +170,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             const Text(
                               'Senha',
                               style: TextStyle(
-                                color: labelColor,
-                                fontSize: 14,
+                                color: AppColors.textPrimary,
+                                fontSize: AppSizes.fontBody,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -166,25 +185,30 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: const Text(
                                 'Esqueci minha senha',
                                 style: TextStyle(
-                                  color: linkColor,
-                                  fontSize: 12,
+                                  color: AppColors.activeBadgeText, // Aproveitámos a cor Cyan do sistema
+                                  fontSize: AppSizes.fontSmall,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSizes.spacingSm),
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             hintText: '••••••••',
-                            prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: AppColors.textSecondary,
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: Colors.grey,
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColors.textSecondary,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -193,74 +217,79 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusSm,
+                              ),
+                              borderSide: const BorderSide(
+                                color: AppColors.divider,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusSm,
+                              ),
+                              borderSide: const BorderSide(
+                                color: AppColors.divider,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: buttonColor),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusSm,
+                              ),
+                              borderSide: const BorderSide(
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: AppSizes.spacingXl),
 
-                        // Botão Entrar
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton.icon(
-                            onPressed: _fazerLogin,
-                            icon: const Icon(Icons.login, color: Colors.white),
-                            label: const Text(
-                              'Entrar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                            ),
-                          ),
+                        // Botão Entrar (Substituído pelo nosso componente)
+                        BotaoPrincipal(
+                          texto: 'Entrar',
+                          icone: Icons.login,
+                          onPressed: _fazerLogin,
                         ),
                       ],
                     ),
                   ),
 
                   // RODAPÉ DO CARD
-                  const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                  const Divider(height: 1, color: AppColors.divider),
                   InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const FaleConoscoScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const FaleConoscoScreen(),
+                        ),
                       );
                     },
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(AppSizes.radiusLg),
+                    ),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSizes.spacingLg,
+                        horizontal: AppSizes.spacingXl,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Icon(Icons.info_outline, size: 18, color: Color(0xFF6B7280)),
-                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.info_outline,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: AppSizes.spacingSm),
                           const Expanded(
                             child: Text(
                               'Acesso exclusivo mediante convite\ninstitucional. Clique para Fale Conosco',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Color(0xFF6B7280),
-                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                fontSize: AppSizes.fontSmall,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

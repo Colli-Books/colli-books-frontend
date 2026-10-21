@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'catalogo_data.dart';
+import '../../../../core/theme/colors.dart';
+import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/botaoPrincipal.dart';
+import '../../../../core/widgets/botaoSecundario.dart';
+import '../../../../core/widgets/botaoTerciario.dart';
 
 class CadastrarTemaScreen extends StatefulWidget {
   const CadastrarTemaScreen({super.key});
@@ -19,7 +25,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Este tema já existe!'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.danger,
         ),
       );
     } else {
@@ -30,7 +36,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Tema "$value" cadastrado com sucesso!'),
-          backgroundColor: const Color(0xFFA1A32D),
+          backgroundColor: AppColors.success,
         ),
       );
     }
@@ -40,24 +46,39 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text('Deseja realmente excluir o tema "$item"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+        backgroundColor: AppColors.surface,
+        title: const Text(
+          'Confirmar Exclusão',
+          style: TextStyle(
+            color: AppColors.titleText,
+            fontWeight: FontWeight.bold,
           ),
-          TextButton(
+        ),
+        content: Text(
+          'Deseja realmente excluir o tema "$item"?',
+          style: const TextStyle(color: AppColors.textPrimary),
+        ),
+        actions: [
+          BotaoTerciario(
+            texto: 'Cancelar',
+            cor: AppColors.textSecondary,
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          BotaoTerciario(
+            texto: 'Excluir',
+            cor: AppColors.danger,
             onPressed: () {
               Navigator.pop(ctx);
               setState(() {
                 CatalogoData.temas.remove(item);
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Tema excluído!'), backgroundColor: Colors.red),
+                const SnackBar(
+                  content: Text('Tema excluído!'),
+                  backgroundColor: AppColors.danger,
+                ),
               );
             },
-            child: const Text('Excluir', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -72,109 +93,153 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const backgroundColor = Color(0xFFF9F5EC);
-    const primaryTextColor = Color(0xFF4A2525);
-    const buttonGreen = Color(0xFFA1A32D);
-    const buttonRed = Color(0xFFE56B6F);
-
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: backgroundColor,
+        backgroundColor: AppColors.background,
         elevation: 0,
-        leadingWidth: 100,
-        leading: TextButton.icon(
+        leadingWidth: 120,
+        leading: BotaoTerciario(
+          texto: 'Voltar',
+          icone: Icons.arrow_back,
+          cor: AppColors.titleText,
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: primaryTextColor, size: 20),
-          label: const Text('Voltar', style: TextStyle(color: primaryTextColor, fontSize: 16)),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.spacingLg,
+          vertical: AppSizes.spacingMd,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               'Cadastrar Tema',
-              style: TextStyle(color: primaryTextColor, fontSize: 24, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                color: AppColors.titleText,
+                fontSize: AppSizes.fontHeading,
+                fontWeight: FontWeight.w800,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSizes.spacingXl),
+
+            // Container do Formulário
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(AppSizes.spacingLg),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3EFE4),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFEBE8E0)),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                border: Border.all(color: AppColors.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Tema',
-                    style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      color: AppColors.titleText,
+                      fontSize: AppSizes.fontBody,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSizes.spacingSm),
+
                   TextField(
                     controller: _controller,
                     decoration: InputDecoration(
                       hintText: 'Ex: Bullying',
                       filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFD6D6D6))),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFD6D6D6))),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: buttonGreen)),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Divider(color: Color(0xFFEBE8E0)),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _cadastrar,
-                      icon: const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
-                      label: const Text('Cadastrar Tema', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonGreen,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        elevation: 0,
+                      fillColor: AppColors.cardBackground,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.spacingMd,
+                        vertical: AppSizes.spacingMd,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                        borderSide: const BorderSide(color: AppColors.divider),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                        borderSide: const BorderSide(color: AppColors.divider),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                        borderSide: const BorderSide(color: AppColors.primary),
                       ),
                     ),
                   ),
+                  const SizedBox(height: AppSizes.spacingLg),
+                  const Divider(color: AppColors.divider),
+                  const SizedBox(height: AppSizes.spacingLg),
 
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              'Temas Cadastrados',
-              style: TextStyle(color: primaryTextColor, fontSize: 18, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 16),
-            ...CatalogoData.temas.map((t) => Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFEBE8E0)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: Text(t, style: const TextStyle(color: primaryTextColor, fontWeight: FontWeight.w600))),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => _confirmarExclusao(t),
+                  // Botões baseados no Design da imagem
+                  BotaoPrincipal(
+                    texto: 'Cadastrar Tema',
+                    icone: Icons.add_circle_outline,
+                    onPressed: _cadastrar,
+                  ),
+                  const SizedBox(height: AppSizes.spacingMd),
+                  BotaoSecundario(
+                    texto: 'Cancelar',
+                    icone: Icons.close,
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
-            )).toList(),
+            ),
+
+            const SizedBox(height: AppSizes.spacingXl),
+
+            // Lista de itens cadastrados
+            const Text(
+              'Temas Cadastrados',
+              style: TextStyle(
+                color: AppColors.titleText,
+                fontSize: AppSizes.fontTitle,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: AppSizes.spacingMd),
+
+            ...CatalogoData.temas.map(
+              (t) => Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: AppSizes.spacingSm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingMd,
+                  vertical: AppSizes.spacingSm,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        t,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: AppColors.danger,
+                      ),
+                      onPressed: () => _confirmarExclusao(t),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

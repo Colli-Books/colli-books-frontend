@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/colors.dart';
+import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/botaoPrincipal.dart';
+import '../../../../core/widgets/botaoTerciario.dart';
+
 class ConvidarProfessorScreen extends StatefulWidget {
   const ConvidarProfessorScreen({super.key});
 
   @override
-  State<ConvidarProfessorScreen> createState() => _ConvidarProfessorScreenState();
+  State<ConvidarProfessorScreen> createState() =>
+      _ConvidarProfessorScreenState();
 }
 
 class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
@@ -12,29 +18,42 @@ class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
 
   void _enviarConvite() {
     final email = _emailController.text.trim();
+
     if (email.isNotEmpty && email.contains('@')) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Confirmar Envio', style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold)),
-          content: Text('Deseja realmente enviar um convite para $email?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Fecha o dialog
-              child: const Text('Não', style: TextStyle(color: Colors.red)),
+          backgroundColor: AppColors.surface,
+          title: const Text(
+            'Confirmar Envio',
+            style: TextStyle(
+              color: AppColors.titleText,
+              fontWeight: FontWeight.bold,
             ),
-            TextButton(
+          ),
+          content: Text(
+            'Deseja realmente enviar um convite para $email?',
+            style: const TextStyle(color: AppColors.textPrimary),
+          ),
+          actions: [
+            BotaoTerciario(
+              texto: 'Não',
+              cor: AppColors.danger,
+              onPressed: () => Navigator.pop(context),
+            ),
+            BotaoTerciario(
+              texto: 'Sim',
+              cor: AppColors.primary,
               onPressed: () {
                 Navigator.pop(context); // Fecha o dialog
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Convite enviado com sucesso para $email'),
-                    backgroundColor: const Color(0xFFA1A32D),
+                    backgroundColor: AppColors.primary,
                   ),
                 );
                 Navigator.pop(context); // Fecha a tela de convidar
               },
-              child: const Text('Sim', style: TextStyle(color: Color(0xFFA1A32D), fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -43,7 +62,7 @@ class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor, insira um e-mail válido.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.danger,
         ),
       );
     }
@@ -57,56 +76,53 @@ class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const backgroundColor = Color(0xFFF9F5EC);
-    const primaryTextColor = Color(0xFF4A2525);
-    const secondaryTextColor = Color(0xFF6B6B6B);
-    const buttonGreen = Color(0xFFA1A32D);
-    const buttonRed = Color(0xFFE56B6F);
-
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: backgroundColor,
+        backgroundColor: AppColors.background,
         elevation: 0,
-        leadingWidth: 100,
-        leading: TextButton.icon(
+        leadingWidth: 120,
+        // Substituímos o TextButton gigante pelo nosso BotaoTerciario
+        leading: BotaoTerciario(
+          texto: 'Voltar',
+          icone: Icons.arrow_back,
+          cor: AppColors.titleText,
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: primaryTextColor, size: 20),
-          label: const Text(
-            'Voltar',
-            style: TextStyle(color: primaryTextColor, fontSize: 16),
-          ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.spacingLg,
+          vertical: AppSizes.spacingMd,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Convidar Professor',
               style: TextStyle(
-                color: primaryTextColor,
-                fontSize: 24,
+                color: AppColors.titleText,
+                fontSize: AppSizes.fontTitle,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSizes.spacingMd),
             const Text(
               'Envie um convite para que o educador possa acessar a plataforma.',
               style: TextStyle(
-                color: secondaryTextColor,
-                fontSize: 16,
+                color: AppColors.textSecondary,
+                fontSize: AppSizes.fontBody,
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSizes.spacingXl),
+
             Container(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(AppSizes.spacingLg),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3EFE4),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFEBE8E0)),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                border: Border.all(color: AppColors.divider),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,56 +130,46 @@ class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
                   const Text(
                     'E-mail Institucional',
                     style: TextStyle(
-                      color: primaryTextColor,
-                      fontSize: 14,
+                      color: AppColors.titleText,
+                      fontSize: AppSizes.fontSmall,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSizes.spacingSm),
+
+                  // O TextField ainda está manual, aqui é bom a gente transformar isso utilziando ai sr julio o widgets que tá criando
+                  // num "InputPersonalizado" depois, mas já aplicamos as cores do sistema.
                   TextField(
                     controller: _emailController,
                     decoration: InputDecoration(
                       hintText: 'Ex: maria.silva@escola.edu.br',
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.spacingMd,
+                        vertical: AppSizes.spacingMd,
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFD6D6D6)),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFD6D6D6)),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: buttonGreen),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                        borderSide: const BorderSide(color: AppColors.primary),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _enviarConvite,
-                      icon: const Icon(Icons.send_outlined, color: Colors.white, size: 20),
-                      label: const Text(
-                        'Enviar Convite',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonGreen,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
+                  const SizedBox(height: AppSizes.spacingXl),
+
+                  // Substituímos o ElevatedButton gigante pelo nosso BotaoPrincipal
+                  BotaoPrincipal(
+                    texto: 'Enviar Convite',
+                    icone: Icons.send_outlined,
+                    onPressed: _enviarConvite,
                   ),
                 ],
               ),

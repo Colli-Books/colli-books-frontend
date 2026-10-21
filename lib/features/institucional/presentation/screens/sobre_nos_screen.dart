@@ -7,7 +7,7 @@ class SobreNosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const backgroundColor = Color(0xFFF9F5EC);
     const primaryTextColor = Color(0xFF4A2525);
-    const secondaryTextColor = Color(0xFF4A2525); 
+    const secondaryTextColor = Color(0xFF4A2525);
     const cardColor = Color(0xFFFEFCF8);
 
     return Scaffold(
@@ -16,7 +16,13 @@ class SobreNosScreen extends StatelessWidget {
         backgroundColor: backgroundColor,
         elevation: 0,
         centerTitle: true,
-        title: const Text('Colli Books', style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Colli Books',
+          style: TextStyle(
+            color: primaryTextColor,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         iconTheme: const IconThemeData(color: primaryTextColor),
       ),
       body: SingleChildScrollView(
@@ -26,48 +32,73 @@ class SobreNosScreen extends StatelessWidget {
           children: [
             const Text(
               'Sobre Nós',
-              style: TextStyle(color: primaryTextColor, fontSize: 36, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                color: primaryTextColor,
+                fontSize: 36,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 16),
             const Text(
               'Cultivando o amor pela leitura e o\nconhecimento desde a infância.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: secondaryTextColor, fontSize: 16, height: 1.5),
+              style: TextStyle(
+                color: secondaryTextColor,
+                fontSize: 16,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 32),
-            
-            // Nossa História (Image Card)
+
+            // Nossa História (Image Card Corrigido)
             Container(
               width: double.infinity,
-              height: 250,
+              height: 260,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: const DecorationImage(
-                  image: NetworkImage('https://via.placeholder.com/600x400/8D6E63/FFFFFF?text=Imagem+Nossa+História'),
+                  image: NetworkImage(
+                    'https://via.placeholder.com/600x400/8D6E63/FFFFFF?text=Imagem+Nossa+História',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
+                  // Gradiente ajustado para garantir legibilidade perfeita sem escurecer demais
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                    colors: [
+                      Colors.black.withOpacity(0.2),
+                      Colors.black.withOpacity(0.7),
+                    ],
                   ),
                 ),
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(Icons.menu_book, color: Colors.white, size: 32),
-                    SizedBox(height: 8),
-                    Text('Nossa História', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
+                    SizedBox(height: 12),
                     Text(
-                      'Anos de dedicação à literatura de\nqualidade.',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+                      'Nossa História',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Anos de dedicação à literatura de qualidade.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -105,9 +136,16 @@ class SobreNosScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Text('Nossos Valores', style: TextStyle(color: primaryTextColor, fontSize: 22, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Nossos Valores',
+                    style: TextStyle(
+                      color: primaryTextColor,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 32),
-                  
+
                   _buildValorItem(
                     icon: Icons.school,
                     title: 'Excelência Pedagógica',
@@ -140,7 +178,13 @@ class SobreNosScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCardInfo({required IconData icon, required String title, required String text, required Color cardColor, required Color primaryTextColor}) {
+  Widget _buildCardInfo({
+    required IconData icon,
+    required String title,
+    required String text,
+    required Color cardColor,
+    required Color primaryTextColor,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24.0),
@@ -155,20 +199,36 @@ class SobreNosScreen extends StatelessWidget {
             children: [
               Icon(icon, color: primaryTextColor, size: 28),
               const SizedBox(width: 12),
-              Text(title, style: TextStyle(color: primaryTextColor, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: TextStyle(
+                  color: primaryTextColor,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             text,
-            style: const TextStyle(color: Color(0xFF4A4A4A), fontSize: 14, height: 1.6),
+            style: const TextStyle(
+              color: Color(0xFF4A4A4A),
+              fontSize: 14,
+              height: 1.6,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildValorItem({required IconData icon, required String title, required String text, required Color primaryTextColor}) {
+  Widget _buildValorItem({
+    required IconData icon,
+    required String title,
+    required String text,
+    required Color primaryTextColor,
+  }) {
     return Column(
       children: [
         Container(
@@ -180,12 +240,23 @@ class SobreNosScreen extends StatelessWidget {
           child: Icon(icon, color: const Color(0xFFA1A32D), size: 32),
         ),
         const SizedBox(height: 16),
-        Text(title, style: TextStyle(color: primaryTextColor, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: TextStyle(
+            color: primaryTextColor,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Color(0xFF4A4A4A), fontSize: 14, height: 1.5),
+          style: const TextStyle(
+            color: Color(0xFF4A4A4A),
+            fontSize: 14,
+            height: 1.5,
+          ),
         ),
       ],
     );
