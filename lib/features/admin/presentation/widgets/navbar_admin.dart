@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/nvbar.dart';
+import '../../../../core/widgets/navbar.dart';
 
 class NavbarAdmin extends StatelessWidget{
   final int currentIndex;

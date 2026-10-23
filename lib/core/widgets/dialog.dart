@@ -1,5 +1,65 @@
 import 'package:flutter/material.dart';
 
+void showMultiSelectDialog({
+  required String title,
+  required BuildContext context,
+  required List<String> allItems,
+  required List<String> selectedItems,
+  required Function(List<String>) onConfirm,
+}) {
+  List<String> tempSelected = List.from(selectedItems);
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            title: Text(title, style: const TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18)),
+            backgroundColor: const Color(0xFFF9F5EC),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView(
+                shrinkWrap: true,
+                children: allItems.map((item) {
+                  return CheckboxListTile(
+                    title: Text(item, style: const TextStyle(color: Color(0xFF4A2525))),
+                    activeColor: const Color(0xFFA1A32D),
+                    value: tempSelected.contains(item),
+                    onChanged: (bool? checked) {
+                      setStateDialog(() {
+                        if (checked == true) {
+                          tempSelected.add(item);
+                        } else {
+                          tempSelected.remove(item);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  onConfirm(tempSelected);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFA1A32D)),
+                child: const Text('Aplicar', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+
 class DeleteIconButton extends StatelessWidget {
   final String itemTitle;
   final VoidCallback onConfirm;

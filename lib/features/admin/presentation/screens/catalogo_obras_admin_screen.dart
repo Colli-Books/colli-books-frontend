@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
 import '../../../../core/widgets/dialog.dart';
+import '../../data/catalogo_data.dart';
 import 'cadastrar_escolaridade_screen.dart';
 import 'cadastrar_obra_screen.dart';
 import 'cadastrar_tema_screen.dart';
@@ -132,7 +133,8 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   onPressed: () {
-                    _showMultiSelectDialog(
+                    showMultiSelectDialog(
+                      context: context,
                       title: 'Filtrar por Escolaridade',
                       allItems: CatalogoData.escolaridades, // TODO: Substituir com dados reais
                       selectedItems: _selectedEscolaridades,
@@ -161,7 +163,8 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   onPressed: () {
-                    _showMultiSelectDialog(
+                    showMultiSelectDialog(
+                      context: context,
                       title: 'Filtrar por Tema',
                       allItems: CatalogoData.temas,
                       selectedItems: _selectedTemas,
@@ -221,7 +224,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: Text(book['title'] as String, style: TextStyle(color: primaryText, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                  child: Text(book['title'] as String, style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 2, overflow: TextOverflow.ellipsis),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -251,7 +254,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(book['author'] as String, style: TextStyle(color: secondaryText, fontSize: 14, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                            Text(book['author'] as String, style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
                             const SizedBox(height: 12),
                             Wrap(
                               spacing: 6,

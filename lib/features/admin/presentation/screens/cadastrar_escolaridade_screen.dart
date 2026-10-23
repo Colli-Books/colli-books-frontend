@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'catalogo_data.dart';
+import '../../data/catalogo_data.dart';
 
 class CadastrarEscolaridadeScreen extends StatefulWidget {
   const CadastrarEscolaridadeScreen({super.key});

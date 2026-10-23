@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../theme/sizes.dart';
+import 'icon.dart';
+import 'text.dart';
 
-class cardInfoText extends StatelessWidget {
-  final Container iconContainer;
-  final Text titleText;
-  final Text valueText;
-  final Color iconBgColor;
-  final Color iconColor;
+class SummaryCard extends StatelessWidget {
+  final SummaryCardIcon iconContainer;
+  final TitleText titleText;
+  final SummaryValueText valueText;
   final VoidCallback? onTap;
 
-  const cardInfoText({
+  const SummaryCard({
     super.key,
     required this.iconContainer,
     required this.titleText,
     required this.valueText,
-    required this.iconBgColor,
-    required this.iconColor,
     this.onTap,
   });
 
@@ -29,8 +27,8 @@ class cardInfoText extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.spacingMd),
         boxShadow: [
           BoxShadow(
-            color: Colors.black,
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: AppSizes.radiusXMd,
             spreadRadius: 0,
             offset: Offset(0, 4),
           ),
@@ -55,6 +53,61 @@ class cardInfoText extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSizes.spacingMd),
                 valueText,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ActionCard extends StatelessWidget {
+  final ActionCardIcon iconContainer;
+  final TitleText titleText;
+  final ActionCardDescriptionText descriptionText;
+  final VoidCallback? onTap;
+
+  const ActionCard({
+    super.key,
+    required this.iconContainer,
+    required this.titleText,
+    required this.descriptionText,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: AppSizes.radiusXMd,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.spacingLg,
+              vertical: AppSizes.spacingXl,
+            ),
+            child: Column(
+              children: [
+                iconContainer,
+                const SizedBox(height: AppSizes.spacingLg),
+                titleText,
+                const SizedBox(height: AppSizes.spacingXMd),
+                descriptionText,
               ],
             ),
           ),

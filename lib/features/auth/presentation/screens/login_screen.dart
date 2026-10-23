@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'fale_conosco_screen.dart';
-import 'admin_home_screen.dart';
+import '../../../admin/presentation/screens/admin_home_screen.dart';
+import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

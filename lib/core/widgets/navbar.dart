@@ -4,7 +4,7 @@ import '../theme/colors.dart';
 class Navbar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final List<BottomNavigationBarItem> items; // <--- Os itens vêm de fora!
+  final List<BottomNavigationBarItem> items;
 
   const Navbar({
     super.key,

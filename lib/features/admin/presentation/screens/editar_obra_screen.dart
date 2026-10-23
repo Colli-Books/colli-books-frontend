@@ -1,32 +1,42 @@
 import 'package:flutter/material.dart';
-import 'catalogo_data.dart';
 
-class CadastrarObraScreen extends StatefulWidget {
-  const CadastrarObraScreen({super.key});
+import '../../data/catalogo_data.dart';
+
+class EditarObraScreen extends StatefulWidget {
+  final Map<String, dynamic> bookData;
+
+  const EditarObraScreen({super.key, required this.bookData});
 
   @override
-  State<CadastrarObraScreen> createState() => _CadastrarObraScreenState();
+  State<EditarObraScreen> createState() => _EditarObraScreenState();
 }
 
-class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
+class _EditarObraScreenState extends State<EditarObraScreen> {
   List<String> _selectedEscolaridades = [];
   List<String> _selectedTemas = [];
-
+  
   late TextEditingController _titleController;
   late TextEditingController _authorController;
+  late TextEditingController _editoraController;
   late TextEditingController _isbnController;
   late TextEditingController _anoController;
+  late TextEditingController _paginasController;
   late TextEditingController _sinopseController;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController();
-    _authorController = TextEditingController();
-    _isbnController = TextEditingController();
-    _anoController = TextEditingController();
+    _selectedEscolaridades = List.from(widget.bookData['escolaridades'] ?? []);
+    _selectedTemas = List.from(widget.bookData['temas'] ?? []);
+    
+    _titleController = TextEditingController(text: widget.bookData['title']);
+    _authorController = TextEditingController(text: widget.bookData['author']);
+    _editoraController = TextEditingController(text: 'Agir');
+    _isbnController = TextEditingController(text: '9788520922593');
+    _anoController = TextEditingController(text: '2009');
+    _paginasController = TextEditingController(text: '96');
     _sinopseController = TextEditingController();
-
+    
     _sinopseController.addListener(() {
       setState(() {});
     });
@@ -36,8 +46,10 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
   void dispose() {
     _titleController.dispose();
     _authorController.dispose();
+    _editoraController.dispose();
     _isbnController.dispose();
     _anoController.dispose();
+    _paginasController.dispose();
     _sinopseController.dispose();
     super.dispose();
   }
@@ -48,7 +60,6 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     const primaryTextColor = Color(0xFF4A2525);
     const secondaryTextColor = Color(0xFF6B6B6B);
     const buttonGreen = Color(0xFFA1A32D);
-    const buttonRed = Color(0xFFE56B6F);
     const borderColor = Color(0xFFD6D6D6);
 
     return Scaffold(
@@ -66,12 +77,16 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Cadastrar Nova Obra',
+              'Edição de Obra',
               style: TextStyle(color: primaryTextColor, fontSize: 24, fontWeight: FontWeight.w800),
-              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Atualize as informações bibliográficas no acervo.',
+              style: TextStyle(color: secondaryTextColor, fontSize: 14),
             ),
             const SizedBox(height: 32),
             Container(
@@ -85,44 +100,64 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Capa do Livro', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 8),
+                  const Text('Capa da Obra', style: TextStyle(color: primaryTextColor, fontSize: 18, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 16),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 32.0),
+                    height: 300,
                     decoration: BoxDecoration(
-                      color: Colors.transparent,
+                      color: const Color(0xFFE2E0D5),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFBDBDBD), style: BorderStyle.solid, width: 2),
-                    ),
-                    // Using a custom dashed border is complex, so let's just use a solid border or a dashed package.
-                    // A solid border is fine for the prototype.
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: const BoxDecoration(color: Color(0xFFF3EFE4), shape: BoxShape.circle),
-                          child: const Icon(Icons.image_outlined, color: primaryTextColor, size: 32),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text('Clique para fazer upload ou arraste\na imagem aqui', textAlign: TextAlign.center, style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold, fontSize: 14)),
-                        const SizedBox(height: 8),
-                        const Text('PNG, JPG até 5MB', style: TextStyle(color: secondaryTextColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                      ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.delete_outline, color: primaryTextColor, size: 18),
+                      label: const Text('Remover Capa', style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(color: Color(0xFFBCAAA4)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EFE4),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFEBE8E0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Informações Bibliográficas', style: TextStyle(color: primaryTextColor, fontSize: 18, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 24),
-
-                  _buildTextField('Título da Obra', 'Ex: O Pequeno Príncipe', _titleController),
+                  
+                  _buildTextField('Título da Obra *', _titleController),
+                  const SizedBox(height: 16),
+                  
+                  _buildTextField('Autor(es) *', _authorController),
                   const SizedBox(height: 16),
 
-                  _buildTextField('Autor(a)', 'Nome do autor', _authorController),
+                  _buildTextField('Editora', _editoraController),
                   const SizedBox(height: 16),
 
-                  _buildTextField('ISBN', '978-0-000000-0-0', _isbnController),
+                  _buildTextField('ISBN', _isbnController),
                   const SizedBox(height: 16),
 
-                  _buildTextField('Ano de Lançamento', 'Ex: 2023', _anoController),
+                  _buildTextField('Ano de Publicação', _anoController),
+                  const SizedBox(height: 16),
+
+                  _buildTextField('Nº de Páginas', _paginasController),
                   const SizedBox(height: 16),
 
                   const Text('Escolaridade', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
@@ -172,7 +207,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                   ],
                   const SizedBox(height: 16),
 
-                  const Text('Tema', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
+                  const Text('Temas Abordados:', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
                   InkWell(
                     onTap: () {
@@ -245,17 +280,17 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        final newBook = {
-                          'title': _titleController.text.isNotEmpty ? _titleController.text : 'Nova Obra',
-                          'author': _authorController.text.isNotEmpty ? _authorController.text : 'Autor Desconhecido',
+                        final updatedBook = {
+                          ...widget.bookData,
+                          'title': _titleController.text,
+                          'author': _authorController.text,
                           'escolaridades': _selectedEscolaridades,
                           'temas': _selectedTemas,
-                          'image': 'https://via.placeholder.com/150',
                         };
-                        Navigator.pop(context, newBook);
+                        Navigator.pop(context, updatedBook);
                       },
-                      icon: const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
-                      label: const Text('Cadastrar Obra', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.edit_document, color: Colors.white, size: 20),
+                      label: const Text('Salvar Alterações', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonGreen,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -264,7 +299,6 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                       ),
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -274,7 +308,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController controller) {
+  Widget _buildTextField(String label, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -283,7 +317,6 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
         TextField(
           controller: controller,
           decoration: InputDecoration(
-            hintText: hint,
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
