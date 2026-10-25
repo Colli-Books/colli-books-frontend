@@ -101,6 +101,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           'imagens/Logo-Colli-Booksteste.webp',
                           height: 64,
                           fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Text(
+                            'Colli Books',
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A2525), fontSize: 24),
+                          ),
                         ),
                         const SizedBox(height: 32),
                         const Text(

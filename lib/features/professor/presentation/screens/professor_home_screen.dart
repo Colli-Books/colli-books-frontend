@@ -741,6 +741,10 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
           'imagens/Logo-Colli-Booksteste.webp',
           height: 38,
           fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Text(
+            'Colli Books',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A2525), fontSize: 18),
+          ),
         ),
       ),
       body: IndexedStack(
