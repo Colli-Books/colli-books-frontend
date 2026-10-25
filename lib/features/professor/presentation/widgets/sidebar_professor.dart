@@ -144,30 +144,6 @@ class SidebarProfessor extends StatelessWidget {
                     brandColor: const Color(0xFF1877F2),
                     onTap: () => _abrirLink('https://www.facebook.com/collibooks/'),
                   ),
-                  const SizedBox(height: AppSizes.spacingMd),
-                  const Divider(color: Color(0xFFEBE8E0), height: 1),
-                  const SizedBox(height: AppSizes.spacingSm),
-                  InkWell(
-                    onTap: () => _confirmarLogout(context),
-                    borderRadius: BorderRadius.circular(8),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.logout_rounded, color: AppColors.danger, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Sair da Conta',
-                            style: TextStyle(
-                              color: AppColors.danger,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -293,47 +269,6 @@ class SidebarProfessor extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _confirmarLogout(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFFF9F5EC),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.logout_rounded, color: Color(0xFFE56B6F)),
-            SizedBox(width: 10),
-            Text('Encerrar Sessão', style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18)),
-          ],
-        ),
-        content: const Text(
-          'Tem certeza que deseja sair da sua conta?',
-          style: TextStyle(color: Color(0xFF6B6B6B), fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF8C7A70), fontWeight: FontWeight.bold)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE56B6F),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Sair', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
     );
   }

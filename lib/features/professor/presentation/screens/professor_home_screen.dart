@@ -1320,30 +1320,6 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                   brandColor: const Color(0xFF1877F2),
                   onTap: () => _abrirLink('https://www.facebook.com/collibooks/'),
                 ),
-                const SizedBox(height: 16),
-                const Divider(color: Color(0xFFEBE8E0), height: 1),
-                const SizedBox(height: 12),
-                InkWell(
-                  onTap: () => _confirmarLogout(context),
-                  borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.logout_rounded, color: Color(0xFFE56B6F), size: 20),
-                        SizedBox(width: 10),
-                        Text(
-                          'Sair da Conta',
-                          style: TextStyle(
-                            color: Color(0xFFE56B6F),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
