@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../institucional/presentation/screens/sobre_nos_screen.dart';
 import '../../../institucional/presentation/screens/termos_uso_screen.dart';
 import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
@@ -123,24 +122,21 @@ class SidebarProfessor extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSizes.spacingSm),
-                  _buildSocialCard(
+                  _buildSocialItem(
                     icon: FontAwesomeIcons.instagram,
                     name: 'Instagram',
-                    handle: '@collibooks',
                     brandColor: const Color(0xFFE1306C),
                     onTap: () => _abrirLink('https://www.instagram.com/collibooks/'),
                   ),
-                  _buildSocialCard(
+                  _buildSocialItem(
                     icon: FontAwesomeIcons.youtube,
                     name: 'YouTube',
-                    handle: 'Colli Books',
                     brandColor: const Color(0xFFCD201F),
                     onTap: () => _abrirLink('https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
                   ),
-                  _buildSocialCard(
+                  _buildSocialItem(
                     icon: FontAwesomeIcons.facebook,
                     name: 'Facebook',
-                    handle: 'collibooks',
                     brandColor: const Color(0xFF1877F2),
                     onTap: () => _abrirLink('https://www.facebook.com/collibooks/'),
                   ),
@@ -196,78 +192,42 @@ class SidebarProfessor extends StatelessWidget {
     );
   }
 
-  Widget _buildSocialCard({
+  Widget _buildSocialItem({
     required FaIconData icon,
     required String name,
-    required String handle,
     required Color brandColor,
     required VoidCallback onTap,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E0D5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: brandColor.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: FaIcon(icon, color: brandColor, size: 16),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          color: Color(0xFF4A2525),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                      Text(
-                        handle,
-                        style: const TextStyle(
-                          color: Color(0xFF8C7A70),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.open_in_new_rounded,
-                  size: 14,
-                  color: Color(0xFFBCAAA4),
-                ),
-              ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9.0, horizontal: 4.0),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              child: Center(
+                child: FaIcon(icon, color: brandColor, size: 20),
+              ),
             ),
-          ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                name,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: AppSizes.fontBody,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.open_in_new_rounded,
+              size: 15,
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+            ),
+          ],
         ),
       ),
     );

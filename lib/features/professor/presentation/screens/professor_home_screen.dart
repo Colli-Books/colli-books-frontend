@@ -1298,25 +1298,22 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                     letterSpacing: 1.0,
                   ),
                 ),
-                const SizedBox(height: 12),
-                _buildSocialCard(
+                const SizedBox(height: 8),
+                _buildSocialItem(
                   icon: FontAwesomeIcons.instagram,
                   name: 'Instagram',
-                  handle: '@collibooks',
                   brandColor: const Color(0xFFE1306C),
                   onTap: () => _abrirLink('https://www.instagram.com/collibooks/'),
                 ),
-                _buildSocialCard(
+                _buildSocialItem(
                   icon: FontAwesomeIcons.youtube,
                   name: 'YouTube',
-                  handle: 'Colli Books',
                   brandColor: const Color(0xFFCD201F),
                   onTap: () => _abrirLink('https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
                 ),
-                _buildSocialCard(
+                _buildSocialItem(
                   icon: FontAwesomeIcons.facebook,
                   name: 'Facebook',
-                  handle: 'collibooks',
                   brandColor: const Color(0xFF1877F2),
                   onTap: () => _abrirLink('https://www.facebook.com/collibooks/'),
                 ),
@@ -1343,78 +1340,42 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
     );
   }
 
-  Widget _buildSocialCard({
+  Widget _buildSocialItem({
     required FaIconData icon,
     required String name,
-    required String handle,
     required Color brandColor,
     required VoidCallback onTap,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E0D5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: brandColor.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: FaIcon(icon, color: brandColor, size: 17),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          color: Color(0xFF4A2525),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                      Text(
-                        handle,
-                        style: const TextStyle(
-                          color: Color(0xFF8C7A70),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.open_in_new_rounded,
-                  size: 14,
-                  color: Color(0xFFBCAAA4),
-                ),
-              ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9.0, horizontal: 4.0),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              child: Center(
+                child: FaIcon(icon, color: brandColor, size: 20),
+              ),
             ),
-          ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                name,
+                style: const TextStyle(
+                  color: Color(0xFF4A2525),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.open_in_new_rounded,
+              size: 15,
+              color: Color(0xFF8D6E63),
+            ),
+          ],
         ),
       ),
     );
