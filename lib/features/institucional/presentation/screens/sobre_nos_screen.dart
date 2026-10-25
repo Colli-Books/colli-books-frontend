@@ -35,45 +35,7 @@ class SobreNosScreen extends StatelessWidget {
               style: TextStyle(color: secondaryTextColor, fontSize: 16, height: 1.5),
             ),
             const SizedBox(height: 32),
-            
-            // Nossa História (Image Card)
-            Container(
-              width: double.infinity,
-              height: 250,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                image: const DecorationImage(
-                  image: NetworkImage('https://via.placeholder.com/600x400/8D6E63/FFFFFF?text=Imagem+Nossa+História'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
-                  ),
-                ),
-                padding: const EdgeInsets.all(24.0),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.menu_book, color: Colors.white, size: 32),
-                    SizedBox(height: 8),
-                    Text('Nossa História', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
-                    Text(
-                      'Anos de dedicação à literatura de\nqualidade.',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
+
 
             // Nossa Missão
             _buildCardInfo(
