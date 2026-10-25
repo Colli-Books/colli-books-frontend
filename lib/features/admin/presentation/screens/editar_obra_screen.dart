@@ -256,8 +256,10 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _sinopseController,
-                    maxLines: 5,
+                    minLines: 4,
+                    maxLines: null,
                     maxLength: 1000,
+                    keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,

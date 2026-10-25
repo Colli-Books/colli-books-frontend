@@ -227,9 +227,12 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _sinopseController,
-                    maxLines: 5,
+                    minLines: 4,
+                    maxLines: null,
                     maxLength: 1000,
+                    keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
+                      hintText: 'Digite a sinopse ou descrição da obra...',
                       filled: true,
                       fillColor: Colors.white,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

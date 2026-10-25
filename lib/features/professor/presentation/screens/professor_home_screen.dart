@@ -990,13 +990,28 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: bookTemas
-                          .map((t) => Container(
+                      children: [
+                        ...bookTemas.take(4).map(
+                              (t) => Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(color: const Color(0xFFFDEBD0), borderRadius: BorderRadius.circular(8)),
                                 child: Text(t, style: const TextStyle(fontSize: 10, color: Color(0xFFD35400), fontWeight: FontWeight.bold)),
-                              ))
-                          .toList(),
+                              ),
+                            ),
+                        if (bookTemas.length > 4)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFCE4D6),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFE59866), width: 0.8),
+                            ),
+                            child: Text(
+                              '+${bookTemas.length - 4}',
+                              style: const TextStyle(fontSize: 10, color: Color(0xFFBA4A00), fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
