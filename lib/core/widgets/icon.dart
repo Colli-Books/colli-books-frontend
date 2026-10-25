@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../theme/sizes.dart';
 
 class SocialIcon extends StatelessWidget {
-  final IconData icon;
+  final FaIconData icon;
   final Color color;
   final VoidCallback onTap;
 
@@ -17,8 +18,9 @@ class SocialIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-        onTap: onTap,
-        child: Icon(icon, color: color, size: AppSizes.spacingLg)
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: FaIcon(icon, color: color, size: AppSizes.spacingLg),
     );
   }
 }

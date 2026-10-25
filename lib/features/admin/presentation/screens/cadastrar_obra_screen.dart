@@ -15,8 +15,10 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
   late TextEditingController _titleController;
   late TextEditingController _authorController;
   late TextEditingController _isbnController;
-  late TextEditingController _anoController;
   late TextEditingController _sinopseController;
+  late TextEditingController _bookUrlController;
+  late TextEditingController _storeUrlController;
+  late TextEditingController _lpUrlController;
 
   @override
   void initState() {
@@ -24,8 +26,10 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     _titleController = TextEditingController();
     _authorController = TextEditingController();
     _isbnController = TextEditingController();
-    _anoController = TextEditingController();
     _sinopseController = TextEditingController();
+    _bookUrlController = TextEditingController();
+    _storeUrlController = TextEditingController();
+    _lpUrlController = TextEditingController();
 
     _sinopseController.addListener(() {
       setState(() {});
@@ -37,8 +41,10 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     _titleController.dispose();
     _authorController.dispose();
     _isbnController.dispose();
-    _anoController.dispose();
     _sinopseController.dispose();
+    _bookUrlController.dispose();
+    _storeUrlController.dispose();
+    _lpUrlController.dispose();
     super.dispose();
   }
 
@@ -122,8 +128,6 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                   _buildTextField('ISBN', '978-0-000000-0-0', _isbnController),
                   const SizedBox(height: 16),
 
-                  _buildTextField('Ano de Lançamento', 'Ex: 2023', _anoController),
-                  const SizedBox(height: 16),
 
                   const Text('Escolaridade', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
@@ -239,6 +243,44 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     alignment: Alignment.centerRight,
                     child: Text('${_sinopseController.text.length} / 1000 caracteres', style: const TextStyle(color: Color(0xFFBCAAA4), fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
+                  const SizedBox(height: 24),
+
+                  const Divider(color: Color(0xFFEBE8E0), height: 1),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Links e Recursos da Obra',
+                    style: TextStyle(color: primaryTextColor, fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Acessos para leitura digital, compra e materiais complementares.',
+                    style: TextStyle(color: secondaryTextColor, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    'Link do Livro (Google Drive / PDF)',
+                    'Ex: https://drive.google.com/file/d/...',
+                    _bookUrlController,
+                    prefixIcon: Icons.picture_as_pdf_outlined,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    'Link da Loja',
+                    'Ex: https://www.collibooksloja.com/infantil/o-segredo-de-aurora',
+                    _storeUrlController,
+                    prefixIcon: Icons.shopping_bag_outlined,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    'Link da Página de Material Pedagógico',
+                    'Ex: https://www.collibooks.com/o-segredo-de-aurora-lp/',
+                    _lpUrlController,
+                    prefixIcon: Icons.school_outlined,
+                  ),
                   const SizedBox(height: 32),
 
                   SizedBox(
@@ -248,8 +290,13 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                         final newBook = {
                           'title': _titleController.text.isNotEmpty ? _titleController.text : 'Nova Obra',
                           'author': _authorController.text.isNotEmpty ? _authorController.text : 'Autor Desconhecido',
+                          'isbn': _isbnController.text,
+                          'sinopse': _sinopseController.text,
                           'escolaridades': _selectedEscolaridades,
                           'temas': _selectedTemas,
+                          'bookUrl': _bookUrlController.text.trim(),
+                          'storeUrl': _storeUrlController.text.trim(),
+                          'lpUrl': _lpUrlController.text.trim(),
                           'image': 'https://via.placeholder.com/150',
                         };
                         Navigator.pop(context, newBook);
@@ -274,7 +321,12 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController controller) {
+  Widget _buildTextField(
+    String label,
+    String hint,
+    TextEditingController controller, {
+    IconData? prefixIcon,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -284,6 +336,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
           controller: controller,
           decoration: InputDecoration(
             hintText: hint,
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: const Color(0xFFA1A32D), size: 20) : null,
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -312,7 +365,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     required String title,
     required List<String> allItems,
     required List<String> selectedItems,
-    required Function(List<String>) onConfirm,
+    required void Function(List<String>) onConfirm,
   }) {
     List<String> tempSelected = List.from(selectedItems);
     showDialog(

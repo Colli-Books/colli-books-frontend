@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
@@ -182,7 +183,6 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
             final interdisciplinaridade = book['interdisciplinaridade'] as Map<String, dynamic>?;
             final disciplinas = (book['disciplinas'] as List<dynamic>?)?.map((d) => d.toString()).toList() ??
                 ['Língua Portuguesa', 'Artes'];
-            final materiais = (book['materiais'] as List<dynamic>?) ?? [];
             final storeUrl = book['storeUrl'] as String? ?? 'https://www.collibooksloja.com/';
             final paginas = book['paginas']?.toString() ?? '38';
             final edicao = book['edicao']?.toString() ?? '1ª';
@@ -296,6 +296,32 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                               ),
                             ),
                           ),
+                          if (book['bookUrl'] != null && (book['bookUrl'] as String).isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () => _abrirLink(book['bookUrl'] as String),
+                                icon: const Icon(Icons.picture_as_pdf_outlined, color: Colors.white, size: 20),
+                                label: const Text(
+                                  'Acessar Livro no Google Drive (PDF)',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4A2525),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 24),
 
                           // 4. ESCOLARIDADES E TEMAS (Idênticos aos cards da Seleção e Catálogo)
@@ -445,77 +471,35 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                                                 height: 1.4,
                                               ),
                                             ),
-                                            if (materiais.isNotEmpty) ...[
-                                              const SizedBox(height: 16),
-                                              ...materiais.map((m) {
-                                                final mat = m as Map<String, dynamic>;
-                                                return Container(
-                                                  margin: const EdgeInsets.only(bottom: 12),
-                                                  padding: const EdgeInsets.all(12),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(0xFFF9F5EC),
-                                                    borderRadius: BorderRadius.circular(12),
-                                                    border: Border.all(color: const Color(0xFFEBE8E0)),
-                                                  ),
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        mat['title']?.toString() ?? '',
-                                                        style: const TextStyle(
-                                                          color: primaryTextColor,
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 4),
-                                                      Text(
-                                                        mat['desc']?.toString() ?? '',
-                                                        style: const TextStyle(
-                                                          color: secondaryTextColor,
-                                                          fontSize: 12,
-                                                          height: 1.3,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 10),
-                                                      Align(
-                                                        alignment: Alignment.centerRight,
-                                                        child: ElevatedButton.icon(
-                                                          onPressed: () => _abrirLink(mat['url']?.toString() ?? ''),
-                                                          icon: const Icon(Icons.picture_as_pdf, color: Colors.white, size: 16),
-                                                          label: const Text(
-                                                            'Abrir PDF',
-                                                            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                                                          ),
-                                                          style: ElevatedButton.styleFrom(
-                                                            backgroundColor: accentColor,
-                                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                                            shape: RoundedRectangleBorder(
-                                                              borderRadius: BorderRadius.circular(10),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              }),
-                                            ],
-                                            if (book['lpUrl'] != null) ...[
-                                              const SizedBox(height: 8),
-                                              TextButton.icon(
-                                                onPressed: () => _abrirLink(book['lpUrl'] as String),
-                                                icon: const Icon(Icons.open_in_new, size: 16, color: accentColor),
+                                            const SizedBox(height: 16),
+                                            SizedBox(
+                                              width: double.infinity,
+                                              child: ElevatedButton.icon(
+                                                onPressed: () {
+                                                  final url = (book['lpUrl'] as String?)?.isNotEmpty == true
+                                                      ? book['lpUrl'] as String
+                                                      : 'https://www.collibooks.com/editora/';
+                                                  _abrirLink(url);
+                                                },
+                                                icon: const Icon(Icons.school, color: Colors.white, size: 20),
                                                 label: const Text(
-                                                  'Acessar página completa da obra (LP)',
+                                                  'Acessar Material Pedagógico da Obra',
                                                   style: TextStyle(
-                                                    color: accentColor,
+                                                    color: Colors.white,
                                                     fontWeight: FontWeight.bold,
-                                                    decoration: TextDecoration.underline,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: accentColor,
+                                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                                                  elevation: 0,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(12),
                                                   ),
                                                 ),
                                               ),
-                                            ],
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -1197,6 +1181,58 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                   },
                   style: TextButton.styleFrom(padding: EdgeInsets.zero, alignment: Alignment.centerLeft),
                   child: Text('Política de Privacidade', style: TextStyle(color: primaryText, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'SIGA-NOS',
+                  style: TextStyle(
+                    color: Color(0xFF8D6E63),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () => _abrirLink('https://www.facebook.com/collibooks/'),
+                      child: const FaIcon(FontAwesomeIcons.facebook, color: Color(0xFFA1A32D), size: 22),
+                    ),
+                    const SizedBox(width: 16),
+                    InkWell(
+                      onTap: () => _abrirLink('https://www.instagram.com/collibooks/'),
+                      child: const FaIcon(FontAwesomeIcons.instagram, color: Color(0xFFA1A32D), size: 22),
+                    ),
+                    const SizedBox(width: 16),
+                    InkWell(
+                      onTap: () => _abrirLink('https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
+                      child: const FaIcon(FontAwesomeIcons.youtube, color: Color(0xFFA1A32D), size: 22),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                InkWell(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
+                    );
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.logout, color: Color(0xFFE56B6F), size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Sair',
+                        style: TextStyle(
+                          color: Color(0xFFE56B6F),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

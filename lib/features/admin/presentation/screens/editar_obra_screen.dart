@@ -19,9 +19,10 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
   late TextEditingController _authorController;
   late TextEditingController _editoraController;
   late TextEditingController _isbnController;
-  late TextEditingController _anoController;
-  late TextEditingController _paginasController;
   late TextEditingController _sinopseController;
+  late TextEditingController _bookUrlController;
+  late TextEditingController _storeUrlController;
+  late TextEditingController _lpUrlController;
 
   @override
   void initState() {
@@ -31,11 +32,12 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
     
     _titleController = TextEditingController(text: widget.bookData['title']?.toString() ?? '');
     _authorController = TextEditingController(text: widget.bookData['author']?.toString() ?? '');
-    _editoraController = TextEditingController(text: 'Agir');
-    _isbnController = TextEditingController(text: '9788520922593');
-    _anoController = TextEditingController(text: '2009');
-    _paginasController = TextEditingController(text: '96');
-    _sinopseController = TextEditingController();
+    _editoraController = TextEditingController(text: widget.bookData['editora']?.toString() ?? 'Colli Books');
+    _isbnController = TextEditingController(text: widget.bookData['isbn']?.toString() ?? '');
+    _sinopseController = TextEditingController(text: widget.bookData['sinopse']?.toString() ?? '');
+    _bookUrlController = TextEditingController(text: widget.bookData['bookUrl']?.toString() ?? '');
+    _storeUrlController = TextEditingController(text: widget.bookData['storeUrl']?.toString() ?? '');
+    _lpUrlController = TextEditingController(text: widget.bookData['lpUrl']?.toString() ?? '');
     
     _sinopseController.addListener(() {
       setState(() {});
@@ -48,9 +50,10 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
     _authorController.dispose();
     _editoraController.dispose();
     _isbnController.dispose();
-    _anoController.dispose();
-    _paginasController.dispose();
     _sinopseController.dispose();
+    _bookUrlController.dispose();
+    _storeUrlController.dispose();
+    _lpUrlController.dispose();
     super.dispose();
   }
 
@@ -154,11 +157,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                   _buildTextField('ISBN', _isbnController),
                   const SizedBox(height: 16),
 
-                  _buildTextField('Ano de Publicação', _anoController),
-                  const SizedBox(height: 16),
-
-                  _buildTextField('Nº de Páginas', _paginasController),
-                  const SizedBox(height: 16),
 
                   const Text('Escolaridade', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
@@ -274,6 +272,44 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                     alignment: Alignment.centerRight,
                     child: Text('${_sinopseController.text.length} / 1000 caracteres', style: const TextStyle(color: Color(0xFFBCAAA4), fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
+                  const SizedBox(height: 24),
+
+                  const Divider(color: Color(0xFFEBE8E0), height: 1),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Links e Recursos da Obra',
+                    style: TextStyle(color: primaryTextColor, fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Acessos para leitura digital, compra e materiais complementares.',
+                    style: TextStyle(color: secondaryTextColor, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    'Link do Livro (Google Drive / PDF)',
+                    _bookUrlController,
+                    hint: 'Ex: https://drive.google.com/file/d/...',
+                    prefixIcon: Icons.picture_as_pdf_outlined,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    'Link da Loja',
+                    _storeUrlController,
+                    hint: 'Ex: https://www.collibooksloja.com/infantil/o-segredo-de-aurora',
+                    prefixIcon: Icons.shopping_bag_outlined,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    'Link da Página de Material Pedagógico',
+                    _lpUrlController,
+                    hint: 'Ex: https://www.collibooks.com/o-segredo-de-aurora-lp/',
+                    prefixIcon: Icons.school_outlined,
+                  ),
                   const SizedBox(height: 32),
 
                   SizedBox(
@@ -284,8 +320,14 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                           ...widget.bookData,
                           'title': _titleController.text,
                           'author': _authorController.text,
+                          'editora': _editoraController.text,
+                          'isbn': _isbnController.text,
+                          'sinopse': _sinopseController.text,
                           'escolaridades': _selectedEscolaridades,
                           'temas': _selectedTemas,
+                          'bookUrl': _bookUrlController.text.trim(),
+                          'storeUrl': _storeUrlController.text.trim(),
+                          'lpUrl': _lpUrlController.text.trim(),
                         };
                         Navigator.pop(context, updatedBook);
                       },
@@ -308,7 +350,12 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    IconData? prefixIcon,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -317,6 +364,8 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
         TextField(
           controller: controller,
           decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: const Color(0xFFA1A32D), size: 20) : null,
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

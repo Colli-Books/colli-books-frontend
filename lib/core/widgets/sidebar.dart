@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -54,11 +55,12 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Iterable<SidebarItem> itemsAdicionais = [
+    final List<SidebarItem> itemsAdicionais = [
       SidebarItem(
         label: 'Editora',
         icon: Icons.library_books_outlined,
         onTap: () {
+          Navigator.pop(context);
           abrirLink('https://www.collibooks.com/editora/');
         },
       ),
@@ -66,6 +68,7 @@ class Sidebar extends StatelessWidget {
         label: 'PNLD',
         icon: Icons.flag_outlined,
         onTap: () {
+          Navigator.pop(context);
           abrirLink('https://www.collibooks.com/pnld-2/');
         },
       ),
@@ -73,6 +76,7 @@ class Sidebar extends StatelessWidget {
         label: 'Blog',
         icon: Icons.edit_note_outlined,
         onTap: () {
+          Navigator.pop(context);
           abrirLink('https://www.collibooks.com/category/blog/');
         },
       ),
@@ -80,6 +84,7 @@ class Sidebar extends StatelessWidget {
         label: 'Anima Kids',
         icon: Icons.star_border,
         onTap: () {
+          Navigator.pop(context);
           abrirLink('https://www.collibooks.com/anima-kids/');
         },
       ),
@@ -87,12 +92,18 @@ class Sidebar extends StatelessWidget {
         label: 'Sobre Nós',
         icon: Icons.info_outline,
         onTap: () {
-          SobreNosScreen();
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (context) => const SobreNosScreen(),
+            ),
+          );
         },
       ),
     ];
 
-    items.addAll(itemsAdicionais);
+    final allItems = [...items, ...itemsAdicionais];
 
     return Drawer(
       backgroundColor: AppColors.surface,
@@ -119,9 +130,9 @@ class Sidebar extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingSm),
-              itemCount: items.length,
+              itemCount: allItems.length,
               itemBuilder: (context, index) {
-                final item = items[index];
+                final item = allItems[index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.spacingSm,
@@ -203,21 +214,21 @@ class Sidebar extends StatelessWidget {
                 Row(
                   children: [
                     SocialIcon(
-                      icon: Icons.facebook,
+                      icon: FontAwesomeIcons.facebook,
                       color: AppColors.primary,
                       onTap: () =>
                           abrirLink('https://www.facebook.com/collibooks/'),
                     ),
                     const SizedBox(width: AppSizes.spacingXMd),
                     SocialIcon(
-                      icon: Icons.camera_alt_outlined,
+                      icon: FontAwesomeIcons.instagram,
                       color: AppColors.primary,
                       onTap: () =>
                           abrirLink('https://www.instagram.com/collibooks/'),
                     ),
                     const SizedBox(width: AppSizes.spacingXMd),
                     SocialIcon(
-                      icon: Icons.play_circle_outline,
+                      icon: FontAwesomeIcons.youtube,
                       color: AppColors.primary,
                       onTap: () => abrirLink(
                         'https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g',

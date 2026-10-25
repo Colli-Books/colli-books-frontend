@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../institucional/presentation/screens/sobre_nos_screen.dart';
 import '../../../institucional/presentation/screens/termos_uso_screen.dart';
 import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
@@ -11,6 +13,13 @@ class SidebarProfessor extends StatelessWidget {
   final ValueChanged<int> onSelectTab;
 
   const SidebarProfessor({super.key, required this.onSelectTab});
+
+  Future<void> _abrirLink(String urlStr) async {
+    final Uri url = Uri.parse(urlStr);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint('Não foi possível abrir o link: $urlStr');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,32 +37,27 @@ class SidebarProfessor extends StatelessWidget {
                 ),
                 children: [
                   _buildItem(
-                    icon: const Icon(Icons.menu_book_outlined),
-                    label: 'Catálogo Geral',
-                    onTap: () {
-                      onSelectTab(0);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  _buildItem(
-                    icon: const Icon(Icons.article_outlined),
+                    icon: const Icon(Icons.library_books_outlined),
                     label: 'Editora',
                     onTap: () {
                       Navigator.pop(context);
+                      _abrirLink('https://www.collibooks.com/editora/');
                     },
                   ),
                   _buildItem(
-                    icon: const Text('🇧🇷', style: TextStyle(fontSize: 18)),
+                    icon: const Icon(Icons.flag_outlined),
                     label: 'PNLD',
                     onTap: () {
                       Navigator.pop(context);
+                      _abrirLink('https://www.collibooks.com/pnld-2/');
                     },
                   ),
                   _buildItem(
-                    icon: const Icon(Icons.edit_note),
+                    icon: const Icon(Icons.edit_note_outlined),
                     label: 'Blog',
                     onTap: () {
                       Navigator.pop(context);
+                      _abrirLink('https://www.collibooks.com/category/blog/');
                     },
                   ),
                   _buildItem(
@@ -61,6 +65,7 @@ class SidebarProfessor extends StatelessWidget {
                     label: 'Anima Kids',
                     onTap: () {
                       Navigator.pop(context);
+                      _abrirLink('https://www.collibooks.com/anima-kids/');
                     },
                   ),
                   _buildItem(
@@ -70,7 +75,7 @@ class SidebarProfessor extends StatelessWidget {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (_) => const SobreNosScreen(),
                         ),
                       );
@@ -92,7 +97,7 @@ class SidebarProfessor extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => const TermosUsoScreen(),
                       ),
                     );
@@ -102,7 +107,7 @@ class SidebarProfessor extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => const PoliticaPrivacidadeScreen(),
                       ),
                     );
@@ -121,14 +126,46 @@ class SidebarProfessor extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      _buildSocial(FontAwesomeIcons.facebook),
+                      _buildSocial(
+                        FontAwesomeIcons.facebook,
+                        () => _abrirLink('https://www.facebook.com/collibooks/'),
+                      ),
                       const SizedBox(width: AppSizes.spacingMd),
-                      _buildSocial(FontAwesomeIcons.instagram),
+                      _buildSocial(
+                        FontAwesomeIcons.instagram,
+                        () => _abrirLink('https://www.instagram.com/collibooks/'),
+                      ),
                       const SizedBox(width: AppSizes.spacingMd),
-                      _buildSocial(FontAwesomeIcons.xTwitter),
-                      const SizedBox(width: AppSizes.spacingMd),
-                      _buildSocial(FontAwesomeIcons.youtube),
+                      _buildSocial(
+                        FontAwesomeIcons.youtube,
+                        () => _abrirLink('https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
+                      ),
                     ],
+                  ),
+                  const SizedBox(height: AppSizes.spacingLg),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const LoginScreen(),
+                        ),
+                      );
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.logout, color: AppColors.danger, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Sair',
+                          style: TextStyle(
+                            color: AppColors.danger,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -182,11 +219,9 @@ class SidebarProfessor extends StatelessWidget {
     );
   }
 
-  Widget _buildSocial(FaIconData icon) {
+  Widget _buildSocial(FaIconData icon, VoidCallback onTap) {
     return InkWell(
-      onTap: () {
-        // Reservado para ligar links externos futuramente
-      },
+      onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.all(4.0),

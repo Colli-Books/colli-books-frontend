@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
@@ -21,6 +22,13 @@ class DetalhesObraScreen extends StatefulWidget {
 
 class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
   late bool _salvo;
+
+  Future<void> _abrirLink(String urlStr) async {
+    final Uri url = Uri.parse(urlStr);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint('Não foi possível abrir o link: $urlStr');
+    }
+  }
 
   @override
   void initState() {
@@ -165,9 +173,41 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
                           fontSize: 16,
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        final storeUrl = widget.obra['storeUrl']?.toString() ?? 'https://www.collibooksloja.com/';
+                        _abrirLink(storeUrl);
+                      },
                     ),
                   ),
+                  if (widget.obra['bookUrl'] != null && widget.obra['bookUrl'].toString().isNotEmpty) ...[
+                    const SizedBox(height: AppSizes.spacingSm),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4A2525),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppSizes.radiusSm,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(Icons.picture_as_pdf_outlined),
+                        label: const Text(
+                          'Acessar Livro no Google Drive (PDF)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        onPressed: () {
+                          _abrirLink(widget.obra['bookUrl'].toString());
+                        },
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: AppSizes.spacingSm),
                   SizedBox(
                     width: double.infinity,
@@ -317,11 +357,30 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
                           ),
                         ),
                         const SizedBox(height: AppSizes.spacingMd),
-                        _buildDownloadItem('Guia de Leitura', 'PDF • 2.4 MB'),
-                        const SizedBox(height: 8),
-                        _buildDownloadItem(
-                          'Atividades Complementares',
-                          'PDF • 1.8 MB',
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusSm,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(Icons.school, size: 18),
+                            label: const Text(
+                              'Acessar Material Pedagógico',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () {
+                              final lpUrl = widget.obra['lpUrl']?.toString() ??
+                                  'https://www.collibooks.com/editora/';
+                              _abrirLink(lpUrl);
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -377,44 +436,6 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDownloadItem(String titulo, String subtitulo) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F2EB),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment
-            .spaceBetween, // Corrigido de .between para .spaceBetween
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                titulo,
-                style: const TextStyle(
-                  color: AppColors.titleText,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitulo,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          const Icon(Icons.download, color: AppColors.primary),
-        ],
       ),
     );
   }

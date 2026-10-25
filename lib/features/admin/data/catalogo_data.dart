@@ -47,6 +47,7 @@ class CatalogoData {
       'ano': '2026',
       'editora': 'Colli Books',
       'image': 'imagens/o_segredo_de_aurora.png',
+      'bookUrl': 'https://drive.google.com/file/d/1sample-o-segredo-de-aurora-pdf/view',
       'storeUrl': 'https://www.collibooksloja.com/infantil/o-segredo-de-aurora',
       'lpUrl': 'https://www.collibooks.com/o-segredo-de-aurora-lp/',
       'disciplinas': [

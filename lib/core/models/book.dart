@@ -8,6 +8,9 @@ class Book {
   final int? pages;
   final String? synopsis;
   final String? imageUrl;
+  final String? bookUrl;
+  final String? storeUrl;
+  final String? lpUrl;
   final List<String> escolaridades;
   final List<String> temas;
 
@@ -21,6 +24,9 @@ class Book {
     this.pages,
     this.synopsis,
     this.imageUrl,
+    this.bookUrl,
+    this.storeUrl,
+    this.lpUrl,
     this.escolaridades = const [],
     this.temas = const [],
   });
@@ -36,6 +42,9 @@ class Book {
       pages: map['pages'] as int?,
       synopsis: map['synopsis'] as String?,
       imageUrl: map['image'] as String? ?? map['imageUrl'] as String?,
+      bookUrl: map['bookUrl'] as String?,
+      storeUrl: map['storeUrl'] as String?,
+      lpUrl: map['lpUrl'] as String?,
       escolaridades: (map['escolaridades'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ?? [],
@@ -56,6 +65,9 @@ class Book {
       'pages': pages,
       'synopsis': synopsis,
       'image': imageUrl,
+      'bookUrl': bookUrl,
+      'storeUrl': storeUrl,
+      'lpUrl': lpUrl,
       'escolaridades': escolaridades,
       'temas': temas,
     };
@@ -71,6 +83,9 @@ class Book {
     int? pages,
     String? synopsis,
     String? imageUrl,
+    String? bookUrl,
+    String? storeUrl,
+    String? lpUrl,
     List<String>? escolaridades,
     List<String>? temas,
   }) {
@@ -84,6 +99,9 @@ class Book {
       pages: pages ?? this.pages,
       synopsis: synopsis ?? this.synopsis,
       imageUrl: imageUrl ?? this.imageUrl,
+      bookUrl: bookUrl ?? this.bookUrl,
+      storeUrl: storeUrl ?? this.storeUrl,
+      lpUrl: lpUrl ?? this.lpUrl,
       escolaridades: escolaridades ?? this.escolaridades,
       temas: temas ?? this.temas,
     );
