@@ -201,7 +201,7 @@ class Sidebar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSizes.spacingMd),
-                Text(
+                const Text(
                   'SIGA-NOS',
                   style: TextStyle(
                     color: AppColors.secondary,
@@ -210,31 +210,27 @@ class Sidebar extends StatelessWidget {
                     letterSpacing: 1.0,
                   ),
                 ),
-                const SizedBox(height: AppSizes.spacingXMd),
-                Row(
-                  children: [
-                    SocialIcon(
-                      icon: FontAwesomeIcons.facebook,
-                      color: AppColors.primary,
-                      onTap: () =>
-                          abrirLink('https://www.facebook.com/collibooks/'),
-                    ),
-                    const SizedBox(width: AppSizes.spacingXMd),
-                    SocialIcon(
-                      icon: FontAwesomeIcons.instagram,
-                      color: AppColors.primary,
-                      onTap: () =>
-                          abrirLink('https://www.instagram.com/collibooks/'),
-                    ),
-                    const SizedBox(width: AppSizes.spacingXMd),
-                    SocialIcon(
-                      icon: FontAwesomeIcons.youtube,
-                      color: AppColors.primary,
-                      onTap: () => abrirLink(
-                        'https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g',
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: AppSizes.spacingSm),
+                _buildSocialCard(
+                  icon: FontAwesomeIcons.instagram,
+                  name: 'Instagram',
+                  handle: '@collibooks',
+                  brandColor: const Color(0xFFE1306C),
+                  onTap: () => abrirLink('https://www.instagram.com/collibooks/'),
+                ),
+                _buildSocialCard(
+                  icon: FontAwesomeIcons.youtube,
+                  name: 'YouTube',
+                  handle: 'Colli Books',
+                  brandColor: const Color(0xFFCD201F),
+                  onTap: () => abrirLink('https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
+                ),
+                _buildSocialCard(
+                  icon: FontAwesomeIcons.facebook,
+                  name: 'Facebook',
+                  handle: 'collibooks',
+                  brandColor: const Color(0xFF1877F2),
+                  onTap: () => abrirLink('https://www.facebook.com/collibooks/'),
                 ),
               ],
             ),
@@ -244,18 +240,131 @@ class Sidebar extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(AppSizes.spacingMd),
               child: BotaoTerciario(
-                texto: 'Sair',
+                texto: 'Sair da Conta',
                 icone: Icons.logout,
                 cor: AppColors.danger,
                 isVertical: false,
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                  );
-                },
+                onPressed: () => _confirmarLogout(context),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialCard({
+    required FaIconData icon,
+    required String name,
+    required String handle,
+    required Color brandColor,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E0D5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: brandColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: FaIcon(icon, color: brandColor, size: 16),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          color: Color(0xFF4A2525),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        handle,
+                        style: const TextStyle(
+                          color: Color(0xFF8C7A70),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.open_in_new_rounded,
+                  size: 14,
+                  color: Color(0xFFBCAAA4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmarLogout(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFFF9F5EC),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Color(0xFFE56B6F)),
+            SizedBox(width: 10),
+            Text('Encerrar Sessão', style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Tem certeza que deseja sair da sua conta?',
+          style: TextStyle(color: Color(0xFF6B6B6B), fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF8C7A70), fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE56B6F),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Sair', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

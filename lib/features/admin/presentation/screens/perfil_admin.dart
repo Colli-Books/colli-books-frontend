@@ -48,15 +48,10 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen>{
           ),
           const SizedBox(height: AppSizes.spacingXXl),
           OutlinedButton.icon(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            },
+            onPressed: () => _confirmarLogout(context),
             icon: const Icon(Icons.exit_to_app, color: AppColors.danger),
             label: const Text(
-              'Sair',
+              'Sair da Conta',
               style: TextStyle(
                 color: AppColors.danger,
                 fontWeight: FontWeight.bold,
@@ -69,6 +64,47 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen>{
                 borderRadius: BorderRadius.circular(AppSizes.radiusXl),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmarLogout(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFFF9F5EC),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Color(0xFFE56B6F)),
+            SizedBox(width: 10),
+            Text('Encerrar Sessão', style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Tem certeza que deseja sair da sua conta?',
+          style: TextStyle(color: Color(0xFF6B6B6B), fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF8C7A70), fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE56B6F),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Sair', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
