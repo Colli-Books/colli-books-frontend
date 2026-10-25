@@ -1,5 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../../core/utils/validators.dart';
 import '../../data/catalogo_data.dart';
 
@@ -22,6 +24,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
   late TextEditingController _storeUrlController;
   late TextEditingController _lpUrlController;
   String? _coverImagePath;
+  Uint8List? _coverBytes;
 
   @override
   void initState() {
@@ -51,6 +54,39 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     _storeUrlController.dispose();
     _lpUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImageFile() async {
+    try {
+      final file = await FilePicker.pickFile(
+        type: FileType.image,
+      );
+      if (file != null) {
+        final bytes = await file.readAsBytes();
+        setState(() {
+          _coverBytes = bytes;
+          _coverImagePath = file.path ?? file.name;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Imagem "${file.name}" carregada com sucesso!'),
+              backgroundColor: const Color(0xFF2E7D32),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Não foi possível carregar a imagem: $e'),
+            backgroundColor: const Color(0xFFC62828),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -100,7 +136,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Capa da Obra', style: TextStyle(color: primaryTextColor, fontSize: 16, fontWeight: FontWeight.w800)),
-                      if (_coverImagePath != null && _coverImagePath!.isNotEmpty)
+                      if ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
@@ -121,18 +157,23 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Proporção recomendada: 2:3 ou 3:4 (vertical, ex: 600x900px). Formatos PNG ou JPG até 5MB.',
+                    'Você pode carregar uma imagem do seu dispositivo (PNG, JPG) ou usar um link web.',
                     style: TextStyle(color: secondaryTextColor, fontSize: 12),
                   ),
                   const SizedBox(height: 20),
                   Center(
                     child: InkWell(
-                      onTap: _showChangeCoverDialog,
+                      onTap: _pickImageFile,
                       borderRadius: BorderRadius.circular(12),
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          _buildCoverPreview(_coverImagePath, width: 170, height: 250),
+                          _buildCoverPreview(
+                            imagePath: _coverImagePath,
+                            coverBytes: _coverBytes,
+                            width: 170,
+                            height: 250,
+                          ),
                           Positioned(
                             bottom: 8,
                             right: 8,
@@ -145,7 +186,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                                   BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6),
                                 ],
                               ),
-                              child: const Icon(Icons.edit, size: 16, color: Colors.white),
+                              child: const Icon(Icons.add_a_photo, size: 16, color: Colors.white),
                             ),
                           ),
                         ],
@@ -153,48 +194,58 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
                     children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _showChangeCoverDialog,
-                          icon: const Icon(Icons.photo_library_outlined, size: 18, color: Colors.white),
-                          label: Text(
-                            _coverImagePath != null ? 'Alterar Capa' : 'Definir Capa do Livro',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: buttonGreen,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                      ElevatedButton.icon(
+                        onPressed: _pickImageFile,
+                        icon: const Icon(Icons.upload_file_rounded, size: 18, color: Colors.white),
+                        label: const Text(
+                          'Escolher do Computador',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonGreen,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _showChangeCoverDialog,
+                        icon: const Icon(Icons.link_rounded, size: 18, color: primaryTextColor),
+                        label: const Text(
+                          'Link Web / Acervo',
+                          style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          side: const BorderSide(color: Color(0xFFBCAAA4)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                      if ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _coverImagePath = null;
+                              _coverBytes = null;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Capa removida.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.delete_outline, color: Color(0xFFC62828), size: 18),
+                          label: const Text('Remover Capa', style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            side: const BorderSide(color: Color(0xFFEF9A9A)),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                         ),
-                      ),
-                      if (_coverImagePath != null && _coverImagePath!.isNotEmpty) ...[
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _coverImagePath = null;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Capa removida.'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.delete_outline, color: Color(0xFFC62828), size: 18),
-                            label: const Text('Remover Capa', style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold)),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: const BorderSide(color: Color(0xFFEF9A9A)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -499,6 +550,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                           'storeUrl': _storeUrlController.text.trim(),
                           'lpUrl': _lpUrlController.text.trim(),
                           'image': _coverImagePath ?? 'imagens/o_segredo_de_aurora.png',
+                          'coverBytes': _coverBytes,
                         };
                         Navigator.pop(context, newBook);
                       },
@@ -634,8 +686,16 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     );
   }
 
-  Widget _buildCoverPreview(String? imagePath, {double width = 170, double height = 250}) {
-    if (imagePath == null || imagePath.isEmpty) {
+  Widget _buildCoverPreview({
+    String? imagePath,
+    Uint8List? coverBytes,
+    double width = 170,
+    double height = 250,
+  }) {
+    final hasBytes = coverBytes != null && coverBytes.isNotEmpty;
+    final hasPath = imagePath != null && imagePath.isNotEmpty;
+
+    if (!hasBytes && !hasPath) {
       return Container(
         width: width,
         height: height,
@@ -664,7 +724,15 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     }
 
     Widget imgWidget;
-    if (imagePath.startsWith('imagens/') || imagePath.startsWith('assets/')) {
+    if (hasBytes) {
+      imgWidget = Image.memory(
+        coverBytes,
+        fit: BoxFit.cover,
+        width: width,
+        height: height,
+        errorBuilder: (_, __, ___) => _buildCoverFallback(width, height),
+      );
+    } else if (imagePath!.startsWith('imagens/') || imagePath.startsWith('assets/')) {
       imgWidget = Image.asset(
         imagePath,
         fit: BoxFit.cover,
@@ -766,6 +834,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
       text: _coverImagePath?.startsWith('http') == true ? _coverImagePath : '',
     );
     String? previewUrl = _coverImagePath;
+    Uint8List? previewBytes = _coverBytes;
 
     showDialog<void>(
       context: context,
@@ -792,11 +861,48 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Cole o link da imagem da capa ou selecione uma capa de exemplo abaixo:',
-                        style: TextStyle(color: Color(0xFF6B6B6B), fontSize: 13),
+                      // BOTÃO DE UPLOAD DO COMPUTADOR
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            try {
+                              final file = await FilePicker.pickFile(
+                                type: FileType.image,
+                              );
+                              if (file != null) {
+                                final bytes = await file.readAsBytes();
+                                setDialogState(() {
+                                  previewBytes = bytes;
+                                  previewUrl = file.path ?? file.name;
+                                  urlController.text = file.name;
+                                });
+                              }
+                            } catch (e) {
+                              debugPrint('Erro ao selecionar arquivo: $e');
+                            }
+                          },
+                          icon: const Icon(Icons.upload_file_rounded, color: Colors.white, size: 18),
+                          label: const Text('Carregar Arquivo do Computador (PNG/JPG)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFA1A32D),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
+                      const Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text('OU VIA LINK WEB', style: TextStyle(fontSize: 11, color: Color(0xFF8C7A70), fontWeight: FontWeight.bold)),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: urlController,
                         decoration: InputDecoration(
@@ -808,6 +914,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                             tooltip: 'Visualizar',
                             onPressed: () {
                               setDialogState(() {
+                                previewBytes = null;
                                 previewUrl = urlController.text.trim();
                               });
                             },
@@ -818,6 +925,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                         ),
                         onChanged: (val) {
                           setDialogState(() {
+                            previewBytes = null;
                             previewUrl = val.trim();
                           });
                         },
@@ -838,6 +946,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                             previewUrl,
                             () {
                               setDialogState(() {
+                                previewBytes = null;
                                 previewUrl = 'imagens/o_segredo_de_aurora.png';
                                 urlController.text = 'imagens/o_segredo_de_aurora.png';
                               });
@@ -849,6 +958,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                             previewUrl,
                             () {
                               setDialogState(() {
+                                previewBytes = null;
                                 previewUrl = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80';
                                 urlController.text = previewUrl!;
                               });
@@ -860,6 +970,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                             previewUrl,
                             () {
                               setDialogState(() {
+                                previewBytes = null;
                                 previewUrl = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80';
                                 urlController.text = previewUrl!;
                               });
@@ -873,7 +984,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                           children: [
                             const Text('Pré-visualização da Capa:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8C7A70))),
                             const SizedBox(height: 8),
-                            _buildCoverPreview(previewUrl, width: 120, height: 175),
+                            _buildCoverPreview(imagePath: previewUrl, coverBytes: previewBytes, width: 120, height: 175),
                           ],
                         ),
                       ),
@@ -890,6 +1001,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                   onPressed: () {
                     setState(() {
                       _coverImagePath = previewUrl?.isEmpty == true ? null : previewUrl;
+                      _coverBytes = previewBytes;
                     });
                     Navigator.pop(context);
                   },

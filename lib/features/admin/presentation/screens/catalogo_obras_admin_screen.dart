@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/colors.dart';
@@ -23,7 +24,14 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
   List<String> _selectedTemas = [];
   final Set<String> _expandedThemes = {};
 
-  Widget _buildBookCover(String? imagePath) {
+  Widget _buildBookCover(String? imagePath, {Uint8List? coverBytes}) {
+    if (coverBytes != null && coverBytes.isNotEmpty) {
+      return Image.memory(
+        coverBytes,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+      );
+    }
     if (imagePath == null || imagePath.isEmpty) {
       return const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey));
     }
@@ -235,7 +243,10 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                         color: Colors.grey[300],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: _buildBookCover(book['image']?.toString()),
+                      child: _buildBookCover(
+                        book['image']?.toString(),
+                        coverBytes: book['coverBytes'] as Uint8List?,
+                      ),
                     ),
                     Expanded(
                       child: Padding(

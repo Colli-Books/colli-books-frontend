@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -124,10 +125,25 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
 
   Widget _buildBookImage(
     String? imagePath, {
+    Uint8List? coverBytes,
     double? height,
     double? width,
     BoxFit fit = BoxFit.cover,
   }) {
+    if (coverBytes != null && coverBytes.isNotEmpty) {
+      return Image.memory(
+        coverBytes,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: height,
+          width: width,
+          color: const Color(0xFFEBE8E0),
+          child: const Icon(Icons.menu_book, color: Color(0xFFA1A32D), size: 40),
+        ),
+      );
+    }
     if (imagePath == null || imagePath.isEmpty) {
       return Container(
         height: height,
@@ -231,6 +247,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 child: _buildBookImage(
                                   book['image'] as String?,
+                                  coverBytes: book['coverBytes'] as Uint8List?,
                                   fit: BoxFit.contain,
                                 ),
                               ),
@@ -927,6 +944,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
               clipBehavior: Clip.antiAlias,
               child: _buildBookImage(
                 book['image'] as String?,
+                coverBytes: book['coverBytes'] as Uint8List?,
                 fit: BoxFit.cover,
               ),
             ),
