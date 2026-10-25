@@ -18,11 +18,27 @@ class CatalogoObrasAdminScreen extends StatefulWidget {
 
 class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
   String _searchCatalog = '';
-  List<Map<String, dynamic>> catalogBooks = [
-
-  ];
+  List<Map<String, dynamic>> catalogBooks = List<Map<String, dynamic>>.from(CatalogoData.livros);
   List<String> _selectedEscolaridades = [];
   List<String> _selectedTemas = [];
+
+  Widget _buildBookCover(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey));
+    }
+    if (imagePath.startsWith('imagens/') || imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+      );
+    }
+    return Image.network(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,11 +224,12 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                       width: 100,
                       height: 140,
                       margin: const EdgeInsets.all(8),
+                      clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
                         color: Colors.grey[300],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+                      child: _buildBookCover(book['image']?.toString()),
                     ),
                     Expanded(
                       child: Padding(

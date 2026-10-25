@@ -5,7 +5,7 @@ import '../../../../core/theme/sizes.dart';
 
 class CardProfessor extends StatelessWidget {
   final Map<String, dynamic> prof;
-  final VoidCallback? onDelete; // 👈 Callback parameter to notify parent
+  final VoidCallback? onDelete; // Callback parameter to notify parent
 
   const CardProfessor({
     super.key,
@@ -15,7 +15,13 @@ class CardProfessor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isAtivo = prof['status'] == 'Ativo';
+    final status = prof['status']?.toString() ?? '';
+    final isAtivo = status == 'Ativo';
+    final iniciais = prof['iniciais']?.toString() ?? '';
+    final nome = prof['nome']?.toString() ?? '';
+    final email = prof['email']?.toString() ?? '';
+    final escola = prof['escola']?.toString() ?? '';
+    final data = prof['data']?.toString() ?? '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSizes.spacingMd),
@@ -35,7 +41,7 @@ class CardProfessor extends StatelessWidget {
                 backgroundColor: AppColors.inputBackground,
                 radius: AppSizes.radiusXl,
                 child: Text(
-                  prof['iniciais'] ?? '',
+                  iniciais,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
@@ -48,24 +54,24 @@ class CardProfessor extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      prof['nome'] ?? '',
+                      nome,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: AppSizes.fontTitle,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    if (isAtivo && prof['email'] != null) ...[
+                    if (isAtivo && email.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
-                        prof['email']!,
+                        email,
                         style: const TextStyle(
-                          color: AppColors.textSecondary, // 👈 Using textSecondary
+                          color: AppColors.textSecondary,
                           fontSize: AppSizes.fontSmall,
                         ),
                       ),
                     ],
-                    if (prof['escola'] != null && prof['escola']!.isNotEmpty) ...[
+                    if (escola.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -77,9 +83,9 @@ class CardProfessor extends StatelessWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              prof['escola']!,
+                              escola,
                               style: const TextStyle(
-                                color: AppColors.textSecondary, // 👈 Using textSecondary
+                                color: AppColors.textSecondary,
                                 fontSize: AppSizes.fontSmall,
                               ),
                             ),
@@ -116,7 +122,7 @@ class CardProfessor extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          prof['status'] ?? '',
+                          status,
                           style: TextStyle(
                             color: isAtivo
                                 ? AppColors.activeBadgeText
@@ -132,12 +138,12 @@ class CardProfessor extends StatelessWidget {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () {
-                        showDialog(
+                        showDialog<void>(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Excluir Professor'),
                             content: Text(
-                              'Tem certeza que deseja excluir "${prof['nome']}"?',
+                              'Tem certeza que deseja excluir "$nome"?',
                             ),
                             actions: [
                               TextButton(
@@ -147,7 +153,7 @@ class CardProfessor extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  onDelete?.call(); // 👈 Trigger parent delete callback!
+                                  onDelete?.call();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('Professor excluído!'),
@@ -185,9 +191,9 @@ class CardProfessor extends StatelessWidget {
           const Divider(color: AppColors.border, height: 1),
           const SizedBox(height: 16),
           Text(
-            prof['data'] ?? '',
+            data,
             style: const TextStyle(
-              color: AppColors.textSecondary, // 👈 Using textSecondary
+              color: AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),

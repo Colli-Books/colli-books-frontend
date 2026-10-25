@@ -5,7 +5,7 @@ import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
 import '../../../institucional/presentation/screens/sobre_nos_screen.dart';
 import '../../../institucional/presentation/screens/termos_uso_screen.dart';
-import '../../../obras/presentation/screens/catalogo_data.dart';
+import '../../../admin/data/catalogo_data.dart';
 import '../widgets/navbar_professor.dart';
 
 class ProfessorHomeScreen extends StatefulWidget {
