@@ -21,6 +21,7 @@ abstract class AppSizes {
   static const double fontXSmall = 10.0;
   static const double fontSmall = 12.0;
   static const double fontBody = 14.0;
+  static const double fontSubTitle = 16.0;
   static const double fontTitle = 18.0;
   static const double fontHeading = 24.0;
   static const double fontSummaryValue = 40.0;
