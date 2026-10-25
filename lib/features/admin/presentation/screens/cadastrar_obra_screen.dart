@@ -21,6 +21,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
   late TextEditingController _bookUrlController;
   late TextEditingController _storeUrlController;
   late TextEditingController _lpUrlController;
+  String? _coverImagePath;
 
   @override
   void initState() {
@@ -95,31 +96,106 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Capa do Livro', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 32.0),
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFBDBDBD), style: BorderStyle.solid, width: 2),
-                    ),
-                    // Using a custom dashed border is complex, so let's just use a solid border or a dashed package.
-                    // A solid border is fine for the prototype.
-                    child: Column(
-                      children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Capa da Obra', style: TextStyle(color: primaryTextColor, fontSize: 16, fontWeight: FontWeight.w800)),
+                      if (_coverImagePath != null && _coverImagePath!.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: const BoxDecoration(color: Color(0xFFF3EFE4), shape: BoxShape.circle),
-                          child: const Icon(Icons.image_outlined, color: primaryTextColor, size: 32),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFA5D6A7)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check_circle, size: 14, color: Color(0xFF2E7D32)),
+                              SizedBox(width: 4),
+                              Text('Capa definida', style: TextStyle(color: Color(0xFF2E7D32), fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        const Text('Clique para fazer upload ou arraste\na imagem aqui', textAlign: TextAlign.center, style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold, fontSize: 14)),
-                        const SizedBox(height: 8),
-                        const Text('PNG, JPG até 5MB', style: TextStyle(color: secondaryTextColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Proporção recomendada: 2:3 ou 3:4 (vertical, ex: 600x900px). Formatos PNG ou JPG até 5MB.',
+                    style: TextStyle(color: secondaryTextColor, fontSize: 12),
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: InkWell(
+                      onTap: _showChangeCoverDialog,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          _buildCoverPreview(_coverImagePath, width: 170, height: 250),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: buttonGreen,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6),
+                                ],
+                              ),
+                              child: const Icon(Icons.edit, size: 16, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _showChangeCoverDialog,
+                          icon: const Icon(Icons.photo_library_outlined, size: 18, color: Colors.white),
+                          label: Text(
+                            _coverImagePath != null ? 'Alterar Capa' : 'Definir Capa do Livro',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: buttonGreen,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                      if (_coverImagePath != null && _coverImagePath!.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _coverImagePath = null;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Capa removida.'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.delete_outline, color: Color(0xFFC62828), size: 18),
+                            label: const Text('Remover Capa', style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: const BorderSide(color: Color(0xFFEF9A9A)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 24),
 
@@ -155,39 +231,85 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                         },
                       );
                     },
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: borderColor),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _selectedEscolaridades.isNotEmpty ? const Color(0xFFA1A32D) : borderColor,
+                          width: _selectedEscolaridades.isNotEmpty ? 1.5 : 1.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Text(
-                              _selectedEscolaridades.isEmpty ? 'Selecione a(s) escolaridade(s)...' : '${_selectedEscolaridades.length} selecionada(s)',
-                              style: TextStyle(color: _selectedEscolaridades.isEmpty ? Colors.grey : primaryTextColor, fontSize: 14),
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.school_outlined, color: Color(0xFFA1A32D), size: 20),
+                              const SizedBox(width: 10),
+                              if (_selectedEscolaridades.isEmpty)
+                                const Text(
+                                  'Selecione as escolaridades atendidas...',
+                                  style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 14),
+                                )
+                              else
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD4E6F1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${_selectedEscolaridades.length} selecionada(s)',
+                                    style: const TextStyle(
+                                      color: Color(0xFF1B4F72),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _selectedEscolaridades.isEmpty ? 'Escolher' : 'Alterar',
+                                style: const TextStyle(
+                                  color: Color(0xFFA1A32D),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Icon(Icons.arrow_drop_down, color: Color(0xFFA1A32D)),
+                            ],
+                          ),
                         ],
                       ),
                     ),
                   ),
                   if (_selectedEscolaridades.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _selectedEscolaridades.map((e) => _buildOutlinedChip(e)).toList(),
+                      children: _selectedEscolaridades.map((e) => _buildEscolaridadeChip(e)).toList(),
                     ),
                   ],
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  const Text('Tema', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
+                  const Text('Temas Abordados', style: TextStyle(color: primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
                   InkWell(
                     onTap: () {
@@ -202,34 +324,80 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                         },
                       );
                     },
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: borderColor),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _selectedTemas.isNotEmpty ? const Color(0xFFA1A32D) : borderColor,
+                          width: _selectedTemas.isNotEmpty ? 1.5 : 1.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Text(
-                              _selectedTemas.isEmpty ? 'Selecione o(s) tema(s)...' : '${_selectedTemas.length} selecionado(s)',
-                              style: TextStyle(color: _selectedTemas.isEmpty ? Colors.grey : primaryTextColor, fontSize: 14),
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.category_outlined, color: Color(0xFFA1A32D), size: 20),
+                              const SizedBox(width: 10),
+                              if (_selectedTemas.isEmpty)
+                                const Text(
+                                  'Selecione os temas abordados...',
+                                  style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 14),
+                                )
+                              else
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFDEBD0),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${_selectedTemas.length} selecionado(s)',
+                                    style: const TextStyle(
+                                      color: Color(0xFFD35400),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _selectedTemas.isEmpty ? 'Escolher' : 'Alterar',
+                                style: const TextStyle(
+                                  color: Color(0xFFA1A32D),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Icon(Icons.arrow_drop_down, color: Color(0xFFA1A32D)),
+                            ],
+                          ),
                         ],
                       ),
                     ),
                   ),
                   if (_selectedTemas.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _selectedTemas.map((t) => _buildOutlinedChip(t)).toList(),
+                      children: _selectedTemas.map((t) => _buildTemaChip(t)).toList(),
                     ),
                   ],
                   const SizedBox(height: 16),
@@ -330,7 +498,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                           'bookUrl': _bookUrlController.text.trim(),
                           'storeUrl': _storeUrlController.text.trim(),
                           'lpUrl': _lpUrlController.text.trim(),
-                          'image': 'https://via.placeholder.com/150',
+                          'image': _coverImagePath ?? 'imagens/o_segredo_de_aurora.png',
                         };
                         Navigator.pop(context, newBook);
                       },
@@ -466,16 +634,368 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     );
   }
 
-  Widget _buildOutlinedChip(String label) {
+  Widget _buildCoverPreview(String? imagePath, {double width = 170, double height = 250}) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: const Color(0xFFEBE8E0),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFD6D6D6)),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_photo_alternate_outlined, size: 48, color: Color(0xFFBCAAA4)),
+            SizedBox(height: 8),
+            Text(
+              'Sem capa definida',
+              style: TextStyle(color: Color(0xFF8C7A70), fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Toque para adicionar',
+              style: TextStyle(color: Color(0xFFBCAAA4), fontSize: 11),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget imgWidget;
+    if (imagePath.startsWith('imagens/') || imagePath.startsWith('assets/')) {
+      imgWidget = Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        width: width,
+        height: height,
+        errorBuilder: (_, __, ___) => _buildCoverFallback(width, height),
+      );
+    } else {
+      imgWidget = Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        width: width,
+        height: height,
+        errorBuilder: (_, __, ___) => _buildCoverFallback(width, height),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      width: width,
+      height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFBCAAA4)),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Text(label, style: const TextStyle(color: Color(0xFF4A2525), fontSize: 14, fontWeight: FontWeight.w500)),
+      clipBehavior: Clip.antiAlias,
+      child: imgWidget,
     );
+  }
+
+  Widget _buildCoverFallback(double width, double height) {
+    return Container(
+      width: width,
+      height: height,
+      color: const Color(0xFFEBE8E0),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image_outlined, size: 36, color: Color(0xFFBCAAA4)),
+            SizedBox(height: 6),
+            Text('Erro na imagem', style: TextStyle(color: Color(0xFF8C7A70), fontSize: 11)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickCoverOption(
+    String label,
+    String imagePath,
+    String? currentSelected,
+    VoidCallback onSelect,
+  ) {
+    final isSelected = currentSelected == imagePath;
+    return InkWell(
+      onTap: onSelect,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEBF5FB) : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF1F618D) : const Color(0xFFD6D6D6),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? Icons.check_circle : Icons.image_outlined,
+              size: 14,
+              color: isSelected ? const Color(0xFF1F618D) : const Color(0xFF8C7A70),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? const Color(0xFF1F618D) : const Color(0xFF4A2525),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangeCoverDialog() {
+    final urlController = TextEditingController(
+      text: _coverImagePath?.startsWith('http') == true ? _coverImagePath : '',
+    );
+    String? previewUrl = _coverImagePath;
+
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFFF9F5EC),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Icon(Icons.image_search_rounded, color: Color(0xFFA1A32D)),
+                  SizedBox(width: 8),
+                  Text(
+                    'Definir Capa da Obra',
+                    style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 480,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Cole o link da imagem da capa ou selecione uma capa de exemplo abaixo:',
+                        style: TextStyle(color: Color(0xFF6B6B6B), fontSize: 13),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: urlController,
+                        decoration: InputDecoration(
+                          labelText: 'Link da Imagem (URL)',
+                          hintText: 'https://exemplo.com/capa.jpg',
+                          prefixIcon: const Icon(Icons.link, color: Color(0xFFA1A32D)),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.check, color: Color(0xFF2E7D32)),
+                            tooltip: 'Visualizar',
+                            onPressed: () {
+                              setDialogState(() {
+                                previewUrl = urlController.text.trim();
+                              });
+                            },
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onChanged: (val) {
+                          setDialogState(() {
+                            previewUrl = val.trim();
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Ou escolha uma capa existente no acervo:',
+                        style: TextStyle(color: Color(0xFF4A2525), fontSize: 13, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildQuickCoverOption(
+                            'O Segredo de Aurora',
+                            'imagens/o_segredo_de_aurora.png',
+                            previewUrl,
+                            () {
+                              setDialogState(() {
+                                previewUrl = 'imagens/o_segredo_de_aurora.png';
+                                urlController.text = 'imagens/o_segredo_de_aurora.png';
+                              });
+                            },
+                          ),
+                          _buildQuickCoverOption(
+                            'O Mistério da Floresta',
+                            'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80',
+                            previewUrl,
+                            () {
+                              setDialogState(() {
+                                previewUrl = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80';
+                                urlController.text = previewUrl!;
+                              });
+                            },
+                          ),
+                          _buildQuickCoverOption(
+                            'Capa Infantil Modelo',
+                            'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80',
+                            previewUrl,
+                            () {
+                              setDialogState(() {
+                                previewUrl = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80';
+                                urlController.text = previewUrl!;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: Column(
+                          children: [
+                            const Text('Pré-visualização da Capa:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8C7A70))),
+                            const SizedBox(height: 8),
+                            _buildCoverPreview(previewUrl, width: 120, height: 175),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _coverImagePath = previewUrl?.isEmpty == true ? null : previewUrl;
+                    });
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.check, color: Colors.white, size: 18),
+                  label: const Text('Confirmar Capa', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFA1A32D),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEscolaridadeChip(String label) {
+    return Container(
+      padding: const EdgeInsets.only(left: 10, right: 6, top: 6, bottom: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBF5FB),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFAED6F1), width: 1.2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.school_rounded, size: 14, color: Color(0xFF1F618D)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF1B4F72),
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _selectedEscolaridades.remove(label);
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Color(0xFFD4E6F1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close_rounded, size: 13, color: Color(0xFF1B4F72)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTemaChip(String label) {
+    return Container(
+      padding: const EdgeInsets.only(left: 10, right: 6, top: 6, bottom: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDF2E9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF5CBA7), width: 1.2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.label_rounded, size: 14, color: Color(0xFFD35400)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFFBA4A00),
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _selectedTemas.remove(label);
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFCE4D6),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close_rounded, size: 13, color: Color(0xFFBA4A00)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOutlinedChip(String label) {
+    return _buildTemaChip(label);
   }
 
   void _showMultiSelectDialog({
