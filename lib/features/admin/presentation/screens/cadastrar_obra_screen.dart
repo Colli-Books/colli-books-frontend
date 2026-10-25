@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../../core/utils/validators.dart';
 import '../../data/catalogo_data.dart';
 
 class CadastrarObraScreen extends StatefulWidget {
@@ -31,9 +33,11 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     _storeUrlController = TextEditingController();
     _lpUrlController = TextEditingController();
 
-    _sinopseController.addListener(() {
-      setState(() {});
-    });
+    _sinopseController.addListener(() => setState(() {}));
+    _isbnController.addListener(() => setState(() {}));
+    _bookUrlController.addListener(() => setState(() {}));
+    _storeUrlController.addListener(() => setState(() {}));
+    _lpUrlController.addListener(() => setState(() {}));
   }
 
   @override
@@ -125,7 +129,14 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                   _buildTextField('Autor(a)', 'Nome do autor', _authorController),
                   const SizedBox(height: 16),
 
-                  _buildTextField('ISBN', '978-0-000000-0-0', _isbnController),
+                  _buildTextField(
+                    'ISBN',
+                    '978-65-6079-046-9',
+                    _isbnController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [IsbnInputFormatter()],
+                    isIsbnField: true,
+                  ),
                   const SizedBox(height: 16),
 
 
@@ -267,6 +278,8 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     'Ex: https://drive.google.com/file/d/...',
                     _bookUrlController,
                     prefixIcon: Icons.picture_as_pdf_outlined,
+                    keyboardType: TextInputType.url,
+                    isUrlField: true,
                   ),
                   const SizedBox(height: 16),
 
@@ -275,6 +288,8 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     'Ex: https://www.collibooksloja.com/infantil/o-segredo-de-aurora',
                     _storeUrlController,
                     prefixIcon: Icons.shopping_bag_outlined,
+                    keyboardType: TextInputType.url,
+                    isUrlField: true,
                   ),
                   const SizedBox(height: 16),
 
@@ -283,6 +298,8 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     'Ex: https://www.collibooks.com/o-segredo-de-aurora-lp/',
                     _lpUrlController,
                     prefixIcon: Icons.school_outlined,
+                    keyboardType: TextInputType.url,
+                    isUrlField: true,
                   ),
                   const SizedBox(height: 32),
 
@@ -290,6 +307,19 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
+                        if (!FormValidators.isValidUrl(_bookUrlController.text) ||
+                            !FormValidators.isValidUrl(_storeUrlController.text) ||
+                            !FormValidators.isValidUrl(_lpUrlController.text)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Por favor, corrija o formato dos links destacados antes de cadastrar.'),
+                              backgroundColor: Color(0xFFC62828),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                          return;
+                        }
+
                         final newBook = {
                           'title': _titleController.text.isNotEmpty ? _titleController.text : 'Nova Obra',
                           'author': _authorController.text.isNotEmpty ? _authorController.text : 'Autor Desconhecido',
@@ -329,7 +359,62 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     String hint,
     TextEditingController controller, {
     IconData? prefixIcon,
+    List<TextInputFormatter>? inputFormatters,
+    TextInputType? keyboardType,
+    bool isUrlField = false,
+    bool isIsbnField = false,
   }) {
+    String? urlError;
+    if (isUrlField && controller.text.trim().isNotEmpty) {
+      urlError = FormValidators.validateUrl(controller.text);
+    }
+
+    final isbnDigits = controller.text.replaceAll(RegExp(r'\D'), '');
+
+    Widget? suffixIcon;
+    if (isUrlField && controller.text.trim().isNotEmpty) {
+      if (urlError == null) {
+        suffixIcon = const Tooltip(
+          message: 'Link válido',
+          child: Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 20),
+          ),
+        );
+      } else {
+        suffixIcon = Tooltip(
+          message: urlError,
+          child: const Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.error_outline_rounded, color: Color(0xFFC62828), size: 20),
+          ),
+        );
+      }
+    } else if (isIsbnField && isbnDigits.isNotEmpty) {
+      if (isbnDigits.length == 13) {
+        suffixIcon = const Tooltip(
+          message: 'ISBN-13 Completo',
+          child: Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 20),
+          ),
+        );
+      } else {
+        suffixIcon = Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Center(
+            widthFactor: 1.0,
+            child: Text(
+              '${isbnDigits.length}/13',
+              style: const TextStyle(color: Color(0xFF8C7A70), fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+      }
+    }
+
+    final hasError = urlError != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -337,17 +422,46 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: const Color(0xFFA1A32D), size: 20) : null,
+            suffixIcon: suffixIcon,
+            suffixIconConstraints: const BoxConstraints(minWidth: 32, minHeight: 20),
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFD6D6D6))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFD6D6D6))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFA1A32D))),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: hasError ? const Color(0xFFC62828) : const Color(0xFFD6D6D6)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: hasError ? const Color(0xFFC62828) : const Color(0xFFD6D6D6)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: hasError ? const Color(0xFFC62828) : const Color(0xFFA1A32D), width: 1.5),
+            ),
           ),
         ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, size: 14, color: Color(0xFFC62828)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    urlError,
+                    style: const TextStyle(color: Color(0xFFC62828), fontSize: 11, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

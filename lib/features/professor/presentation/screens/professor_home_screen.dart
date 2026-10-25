@@ -27,6 +27,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
   String _searchQuery = '';
   List<String> _selectedEscolaridades = [];
   List<String> _selectedTemas = [];
+  final Set<String> _expandedThemes = {};
 
   // Lista de livros selecionados/favoritados pelo educador
   final List<Map<String, dynamic>> _selecao = [];
@@ -752,12 +753,16 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
       final author = (book['author'] as String).toLowerCase();
       final isbn = (book['isbn'] as String? ?? '').toLowerCase();
       final query = _searchQuery.toLowerCase();
-      final matchesSearch = query.isEmpty || title.contains(query) || author.contains(query) || isbn.contains(query);
+      final bookTemas = (book['temas'] as List<dynamic>?)?.map((t) => t.toString()).toList() ?? [];
+      final matchesSearch = query.isEmpty ||
+          title.contains(query) ||
+          author.contains(query) ||
+          isbn.contains(query) ||
+          bookTemas.any((t) => t.toLowerCase().contains(query));
 
       final bookEsc = (book['escolaridades'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
       final matchesEsc = _selectedEscolaridades.isEmpty || _selectedEscolaridades.any((e) => bookEsc.contains(e));
 
-      final bookTemas = (book['temas'] as List<dynamic>?)?.map((t) => t.toString()).toList() ?? [];
       final matchesTema = _selectedTemas.isEmpty || _selectedTemas.any((t) => bookTemas.contains(t));
 
       return matchesSearch && matchesEsc && matchesTema;
@@ -776,7 +781,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
               });
             },
             decoration: InputDecoration(
-              hintText: 'Buscar por título ou autor...',
+              hintText: 'Buscar por título, autor ou tema...',
               hintStyle: TextStyle(color: secondaryText, fontSize: 14),
               prefixIcon: Icon(Icons.search, color: secondaryText),
               filled: true,
@@ -986,32 +991,101 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                           .toList(),
                     ),
                     const SizedBox(height: 6),
-                    // BADGES DE TEMAS (LARANJAS)
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        ...bookTemas.take(4).map(
+                    // BADGES DE TEMAS (LARANJAS COM SUPORTE A EXPANSÃO E TEMA PESQUISADO)
+                    Builder(
+                      builder: (context) {
+                        final bookTitle = book['title'] as String;
+                        final isThemesExpanded = _expandedThemes.contains(bookTitle);
+                        final query = _searchQuery.trim().toLowerCase();
+
+                        // Identifica se há tema pesquisado ou filtrado que não esteja entre os 4 primeiros
+                        final matchedExtraTemas = bookTemas.skip(4).where((t) {
+                          final matchQuery = query.isNotEmpty && t.toLowerCase().contains(query);
+                          final matchFilter = _selectedTemas.any((st) => st.toLowerCase() == t.toLowerCase());
+                          return matchQuery || matchFilter;
+                        }).toList();
+
+                        final List<String> displayedTemas;
+                        if (isThemesExpanded) {
+                          displayedTemas = bookTemas;
+                        } else {
+                          displayedTemas = [
+                            ...bookTemas.take(4),
+                            ...matchedExtraTemas,
+                          ];
+                        }
+                        final remainingCount = bookTemas.length - displayedTemas.length;
+
+                        return Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            ...displayedTemas.map(
                               (t) => Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(color: const Color(0xFFFDEBD0), borderRadius: BorderRadius.circular(8)),
                                 child: Text(t, style: const TextStyle(fontSize: 10, color: Color(0xFFD35400), fontWeight: FontWeight.bold)),
                               ),
                             ),
-                        if (bookTemas.length > 4)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFCE4D6),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFE59866), width: 0.8),
-                            ),
-                            child: Text(
-                              '+${bookTemas.length - 4}',
-                              style: const TextStyle(fontSize: 10, color: Color(0xFFBA4A00), fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                      ],
+                            if (remainingCount > 0 && !isThemesExpanded)
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _expandedThemes.add(bookTitle);
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFCE4D6),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFE59866), width: 0.8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '+$remainingCount',
+                                        style: const TextStyle(fontSize: 10, color: Color(0xFFBA4A00), fontWeight: FontWeight.w800),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      const Icon(Icons.add, size: 12, color: Color(0xFFBA4A00)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            if (isThemesExpanded && bookTemas.length > 4)
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _expandedThemes.remove(bookTitle);
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFCE4D6),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFE59866), width: 0.8),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Ver menos',
+                                        style: TextStyle(fontSize: 10, color: Color(0xFFBA4A00), fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(width: 2),
+                                      Icon(Icons.remove, size: 12, color: Color(0xFFBA4A00)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
