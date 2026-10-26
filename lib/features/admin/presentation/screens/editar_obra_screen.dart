@@ -138,7 +138,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Carregue um arquivo do seu dispositivo (PNG, JPG, PDF) ou selecione uma capa do acervo.',
+                    'Carregue um arquivo do seu dispositivo (PNG, JPG, PDF).',
                     style: TextStyle(color: secondaryTextColor, fontSize: 12),
                   ),
                   const SizedBox(height: 20),
@@ -214,7 +214,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                         onPressed: _showChangeCoverDialog,
                         icon: const Icon(Icons.file_upload_outlined, size: 18, color: Colors.white),
                         label: const Text(
-                          'Carregar Capa / Acervo',
+                          'Carregar Capa',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -812,49 +812,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
     );
   }
 
-  Widget _buildQuickCoverOption(
-    String label,
-    String imagePath,
-    String? currentSelected,
-    VoidCallback onSelect,
-  ) {
-    final isSelected = currentSelected == imagePath;
-    return InkWell(
-      onTap: onSelect,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEBF5FB) : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF1F618D) : const Color(0xFFD6D6D6),
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isSelected ? Icons.check_circle : Icons.image_outlined,
-              size: 14,
-              color: isSelected ? const Color(0xFF1F618D) : const Color(0xFF8C7A70),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? const Color(0xFF1F618D) : const Color(0xFF4A2525),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showChangeCoverDialog() {
     String? previewUrl = _coverImagePath;
     Uint8List? previewBytes = _coverBytes;
@@ -922,51 +879,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                         'Formatos suportados: PNG, JPG, JPEG, WEBP ou documento PDF (a 1ª página será utilizada como capa).',
                         style: TextStyle(fontSize: 11, color: Color(0xFF8C7A70)),
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Ou escolha uma capa existente no acervo:',
-                        style: TextStyle(color: Color(0xFF4A2525), fontSize: 13, fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _buildQuickCoverOption(
-                            'O Segredo de Aurora',
-                            'imagens/o_segredo_de_aurora.png',
-                            previewUrl,
-                            () {
-                              setDialogState(() {
-                                previewBytes = null;
-                                previewUrl = 'imagens/o_segredo_de_aurora.png';
-                              });
-                            },
-                          ),
-                          _buildQuickCoverOption(
-                            'O Mistério da Floresta',
-                            'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80',
-                            previewUrl,
-                            () {
-                              setDialogState(() {
-                                previewBytes = null;
-                                previewUrl = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80';
-                              });
-                            },
-                          ),
-                          _buildQuickCoverOption(
-                            'Capa Infantil Modelo',
-                            'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80',
-                            previewUrl,
-                            () {
-                              setDialogState(() {
-                                previewBytes = null;
-                                previewUrl = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80';
-                              });
-                            },
-                          ),
-                        ],
-                      ),
+
                       const SizedBox(height: 20),
                       Center(
                         child: Column(
