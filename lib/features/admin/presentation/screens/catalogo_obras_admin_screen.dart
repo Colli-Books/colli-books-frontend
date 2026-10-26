@@ -26,11 +26,14 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
   final Set<String> _expandedThemes = {};
 
   Widget _buildBookCover(String? imagePath, {Uint8List? coverBytes}) {
+    if (isPdfCover(imagePath, coverBytes)) {
+      return buildPdfCoverThumbnail(width: 80, height: 110, compact: true);
+    }
     if (coverBytes != null && coverBytes.isNotEmpty) {
       return Image.memory(
         coverBytes,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+        errorBuilder: (_, _, _) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
       );
     }
     if (imagePath == null || imagePath.isEmpty) {
@@ -40,13 +43,13 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
       return Image.asset(
         imagePath,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+        errorBuilder: (_, _, _) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
       );
     }
     return Image.network(
       imagePath,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
+      errorBuilder: (_, _, _) => const Center(child: Icon(Icons.menu_book, size: 32, color: Colors.grey)),
     );
   }
 

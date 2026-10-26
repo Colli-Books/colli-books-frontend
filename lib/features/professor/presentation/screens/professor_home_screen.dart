@@ -131,6 +131,13 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
     double? width,
     BoxFit fit = BoxFit.cover,
   }) {
+    if (isPdfCover(imagePath, coverBytes)) {
+      return buildPdfCoverThumbnail(
+        width: width ?? 80,
+        height: height ?? 110,
+        compact: (width != null && width < 120),
+      );
+    }
     if (coverBytes != null && coverBytes.isNotEmpty) {
       return Image.memory(
         coverBytes,

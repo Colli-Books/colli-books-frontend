@@ -35,6 +35,125 @@ void abrirVisualizadorImagem(
   );
 }
 
+/// Detecta se o arquivo/recurso de capa é um documento PDF (por extensão ou magic bytes %PDF).
+bool isPdfCover(String? path, Uint8List? bytes) {
+  if (path != null && path.toLowerCase().endsWith('.pdf')) {
+    return true;
+  }
+  if (bytes != null && bytes.length >= 4) {
+    if (bytes[0] == 0x25 && bytes[1] == 0x50 && bytes[2] == 0x44 && bytes[3] == 0x46) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Constrói um cartão visual estilizado representando a 1ª página do arquivo PDF carregado.
+Widget buildPdfCoverThumbnail({
+  double width = 170,
+  double height = 250,
+  String? label,
+  bool compact = false,
+}) {
+  return Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF8B2522), Color(0xFF5A1412)],
+      ),
+      borderRadius: BorderRadius.circular(compact ? 6 : 10),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.2),
+          blurRadius: compact ? 4 : 8,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Stack(
+      children: [
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: compact ? 6 : 12,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(compact ? 6 : 10),
+                bottomLeft: Radius.circular(compact ? 6 : 10),
+              ),
+            ),
+          ),
+        ),
+        Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 4 : 12,
+              vertical: compact ? 6 : 16,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(compact ? 6 : 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.picture_as_pdf_rounded,
+                    color: Colors.white,
+                    size: compact ? 22 : 40,
+                  ),
+                ),
+                SizedBox(height: compact ? 4 : 10),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: compact ? 4 : 8,
+                    vertical: compact ? 2 : 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'PDF • 1ª PÁGINA',
+                    style: TextStyle(
+                      color: const Color(0xFF8B2522),
+                      fontSize: compact ? 8 : 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                if (!compact && label != null && label.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class FullscreenImageViewer extends StatefulWidget {
   final String? imagePath;
   final Uint8List? coverBytes;
@@ -79,18 +198,22 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
     final hasBytes = widget.coverBytes != null && widget.coverBytes!.isNotEmpty;
     final path = widget.imagePath;
 
+    if (isPdfCover(path, widget.coverBytes)) {
+      return _buildPdfFullscreen();
+    }
+
     Widget img;
     if (hasBytes) {
       img = Image.memory(
         widget.coverBytes!,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _buildErrorWidget(),
+        errorBuilder: (_, _, _) => _buildErrorWidget(),
       );
     } else if (path != null && (path.startsWith('imagens/') || path.startsWith('assets/'))) {
       img = Image.asset(
         path,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _buildErrorWidget(),
+        errorBuilder: (_, _, _) => _buildErrorWidget(),
       );
     } else if (path != null && path.isNotEmpty) {
       img = Image.network(
@@ -104,7 +227,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
             ),
           );
         },
-        errorBuilder: (_, __, ___) => _buildErrorWidget(),
+        errorBuilder: (_, _, _) => _buildErrorWidget(),
       );
     } else {
       img = _buildErrorWidget();
@@ -131,6 +254,95 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPdfFullscreen() {
+    final name = widget.title ?? widget.imagePath ?? 'Documento PDF';
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 360, maxHeight: 520),
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFD32F2F).withValues(alpha: 0.6), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.6),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD32F2F).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.picture_as_pdf_rounded,
+                color: Color(0xFFEF5350),
+                size: 64,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD32F2F),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'ARQUIVO PDF CARREGADO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'A primeira página deste arquivo PDF será processada e utilizada como capa da obra.',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (widget.coverBytes != null && widget.coverBytes!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Tamanho: ${(widget.coverBytes!.lengthInBytes / (1024 * 1024)).toStringAsFixed(2)} MB',
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

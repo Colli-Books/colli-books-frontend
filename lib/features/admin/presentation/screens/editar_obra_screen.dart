@@ -138,7 +138,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Você pode carregar uma imagem do seu dispositivo (PNG, JPG) ou usar um link web.',
+                    'Carregue um arquivo do seu dispositivo (PNG, JPG, PDF) ou selecione uma capa do acervo.',
                     style: TextStyle(color: secondaryTextColor, fontSize: 12),
                   ),
                   const SizedBox(height: 20),
@@ -212,9 +212,9 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: _showChangeCoverDialog,
-                        icon: const Icon(Icons.link_rounded, size: 18, color: Colors.white),
+                        icon: const Icon(Icons.file_upload_outlined, size: 18, color: Colors.white),
                         label: const Text(
-                          'Link Web / Acervo',
+                          'Carregar Capa / Acervo',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -741,6 +741,14 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
       );
     }
 
+    if (isPdfCover(imagePath, coverBytes)) {
+      return buildPdfCoverThumbnail(
+        width: width,
+        height: height,
+        label: _titleController.text.isNotEmpty ? _titleController.text : null,
+      );
+    }
+
     Widget imgWidget;
     if (hasBytes) {
       imgWidget = Image.memory(
@@ -748,7 +756,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
         fit: BoxFit.cover,
         width: width,
         height: height,
-        errorBuilder: (_, __, ___) => _buildCoverFallback(width, height),
+        errorBuilder: (_, _, _) => _buildCoverFallback(width, height),
       );
     } else if (imagePath!.startsWith('imagens/') || imagePath.startsWith('assets/')) {
       imgWidget = Image.asset(
@@ -756,7 +764,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
         fit: BoxFit.cover,
         width: width,
         height: height,
-        errorBuilder: (_, __, ___) => _buildCoverFallback(width, height),
+        errorBuilder: (_, _, _) => _buildCoverFallback(width, height),
       );
     } else {
       imgWidget = Image.network(
@@ -764,7 +772,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
         fit: BoxFit.cover,
         width: width,
         height: height,
-        errorBuilder: (_, __, ___) => _buildCoverFallback(width, height),
+        errorBuilder: (_, _, _) => _buildCoverFallback(width, height),
       );
     }
 
@@ -848,9 +856,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
   }
 
   void _showChangeCoverDialog() {
-    final urlController = TextEditingController(
-      text: _coverImagePath?.startsWith('http') == true ? _coverImagePath : '',
-    );
     String? previewUrl = _coverImagePath;
     Uint8List? previewBytes = _coverBytes;
 
@@ -864,7 +869,7 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Row(
                 children: [
-                  Icon(Icons.image_search_rounded, color: Color(0xFFA1A32D)),
+                  Icon(Icons.photo_library_outlined, color: Color(0xFF4A2525)),
                   SizedBox(width: 8),
                   Text(
                     'Definir Capa da Obra',
@@ -879,29 +884,32 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // BOTÃO DE UPLOAD DO COMPUTADOR
+                      // BOTÃO DE UPLOAD DO COMPUTADOR (IMAGEM OU PDF)
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             try {
                               final file = await FilePicker.pickFile(
-                                type: FileType.image,
+                                type: FileType.custom,
+                                allowedExtensions: ['png', 'jpg', 'jpeg', 'webp', 'pdf'],
                               );
                               if (file != null) {
                                 final bytes = await file.readAsBytes();
                                 setDialogState(() {
                                   previewBytes = bytes;
-                                  previewUrl = file.path ?? file.name;
-                                  urlController.text = file.name;
+                                  previewUrl = file.name;
                                 });
                               }
                             } catch (e) {
                               debugPrint('Erro ao selecionar arquivo: $e');
                             }
                           },
-                          icon: const Icon(Icons.upload_file_rounded, color: Colors.white, size: 18),
-                          label: const Text('Carregar Arquivo do Computador (PNG/JPG)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          icon: const Icon(Icons.upload_file_rounded, color: Colors.white, size: 20),
+                          label: const Text(
+                            'Carregar Arquivo (PNG, JPG, PDF...)',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA1A32D),
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -909,46 +917,12 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const Row(
-                        children: [
-                          Expanded(child: Divider()),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('OU VIA LINK WEB', style: TextStyle(fontSize: 11, color: Color(0xFF8C7A70), fontWeight: FontWeight.bold)),
-                          ),
-                          Expanded(child: Divider()),
-                        ],
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Formatos suportados: PNG, JPG, JPEG, WEBP ou documento PDF (a 1ª página será utilizada como capa).',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF8C7A70)),
                       ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: urlController,
-                        decoration: InputDecoration(
-                          labelText: 'Link da Imagem (URL)',
-                          hintText: 'https://exemplo.com/capa.jpg',
-                          prefixIcon: const Icon(Icons.link, color: Color(0xFFA1A32D)),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.check, color: Color(0xFF2E7D32)),
-                            tooltip: 'Visualizar',
-                            onPressed: () {
-                              setDialogState(() {
-                                previewBytes = null;
-                                previewUrl = urlController.text.trim();
-                              });
-                            },
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onChanged: (val) {
-                          setDialogState(() {
-                            previewBytes = null;
-                            previewUrl = val.trim();
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       const Text(
                         'Ou escolha uma capa existente no acervo:',
                         style: TextStyle(color: Color(0xFF4A2525), fontSize: 13, fontWeight: FontWeight.w700),
@@ -966,7 +940,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                               setDialogState(() {
                                 previewBytes = null;
                                 previewUrl = 'imagens/o_segredo_de_aurora.png';
-                                urlController.text = 'imagens/o_segredo_de_aurora.png';
                               });
                             },
                           ),
@@ -978,7 +951,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                               setDialogState(() {
                                 previewBytes = null;
                                 previewUrl = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80';
-                                urlController.text = previewUrl!;
                               });
                             },
                           ),
@@ -990,7 +962,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                               setDialogState(() {
                                 previewBytes = null;
                                 previewUrl = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80';
-                                urlController.text = previewUrl!;
                               });
                             },
                           ),
@@ -1000,7 +971,10 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                       Center(
                         child: Column(
                           children: [
-                            const Text('Pré-visualização da Capa:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8C7A70))),
+                            const Text(
+                              'Pré-visualização da Capa:',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8C7A70)),
+                            ),
                             const SizedBox(height: 8),
                             InkWell(
                               onTap: () => abrirVisualizadorImagem(
@@ -1010,7 +984,12 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                                 title: 'Pré-visualização da Capa',
                               ),
                               borderRadius: BorderRadius.circular(10),
-                              child: _buildCoverPreview(imagePath: previewUrl, coverBytes: previewBytes, width: 120, height: 175),
+                              child: _buildCoverPreview(
+                                imagePath: previewUrl,
+                                coverBytes: previewBytes,
+                                width: 120,
+                                height: 175,
+                              ),
                             ),
                           ],
                         ),
@@ -1131,10 +1110,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildOutlinedChip(String label) {
-    return _buildTemaChip(label);
   }
 
   void _showMultiSelectDialog({

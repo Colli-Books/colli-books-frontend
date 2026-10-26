@@ -54,17 +54,19 @@ class ObraCard extends StatelessWidget {
                       height: double.infinity,
                       child: capa == null || capa!.isEmpty
                           ? placeholder
-                          : (capa!.startsWith('imagens/') || capa!.startsWith('assets/'))
-                              ? Image.asset(
-                                  capa!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => placeholder,
-                                )
-                              : Image.network(
-                                  capa!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => placeholder,
-                                ),
+                          : isPdfCover(capa, null)
+                              ? buildPdfCoverThumbnail(label: titulo, compact: true)
+                              : (capa!.startsWith('imagens/') || capa!.startsWith('assets/'))
+                                  ? Image.asset(
+                                      capa!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => placeholder,
+                                    )
+                                  : Image.network(
+                                      capa!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => placeholder,
+                                    ),
                     ),
                     if (capa != null && capa!.isNotEmpty)
                       Positioned(
@@ -73,7 +75,7 @@ class ObraCard extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
+                            color: Colors.black.withValues(alpha: 0.6),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),

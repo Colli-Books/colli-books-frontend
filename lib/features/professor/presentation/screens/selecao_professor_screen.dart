@@ -176,23 +176,37 @@ class SelecaoProfessorScreen extends StatelessWidget {
                             SizedBox(
                               height: 200,
                               width: double.infinity,
-                              child:
-                                  (obra['capa'] != null &&
-                                      obra['capa'].toString().isNotEmpty)
-                                  ? Image.network(
-                                      obra['capa'].toString(),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      color: Colors.grey.shade300,
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.menu_book,
-                                          size: 48,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
+                              child: () {
+                                final capaStr = (obra['capa'] ?? obra['image'])?.toString();
+                                final coverBytes = obra['coverBytes'] as Uint8List?;
+                                final titulo = (obra['titulo'] ?? obra['title'])?.toString();
+                                if (isPdfCover(capaStr, coverBytes)) {
+                                  return buildPdfCoverThumbnail(
+                                    width: double.infinity,
+                                    height: 200,
+                                    label: titulo,
+                                  );
+                                }
+                                if (coverBytes != null && coverBytes.isNotEmpty) {
+                                  return Image.memory(coverBytes, fit: BoxFit.cover);
+                                }
+                                if (capaStr != null && capaStr.isNotEmpty) {
+                                  if (capaStr.startsWith('imagens/') || capaStr.startsWith('assets/')) {
+                                    return Image.asset(capaStr, fit: BoxFit.cover);
+                                  }
+                                  return Image.network(capaStr, fit: BoxFit.cover);
+                                }
+                                return Container(
+                                  color: Colors.grey.shade300,
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.menu_book,
+                                      size: 48,
+                                      color: Colors.grey,
                                     ),
+                                  ),
+                                );
+                              }(),
                             ),
                             Positioned(
                               bottom: 8,
@@ -200,7 +214,7 @@ class SelecaoProfessorScreen extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.65),
+                                  color: Colors.black.withValues(alpha: 0.65),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),

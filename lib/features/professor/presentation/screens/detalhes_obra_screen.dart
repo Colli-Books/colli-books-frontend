@@ -137,23 +137,29 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child:
-                              (widget.obra['capa'] != null &&
-                                  widget.obra['capa'].toString().isNotEmpty)
-                              ? Image.network(
-                                  widget.obra['capa'].toString(),
-                                  fit: BoxFit.cover,
-                                )
-                              : Container(
-                                  color: Colors.grey.shade300,
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.menu_book,
-                                      size: 64,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
+                          child: () {
+                            final capaStr = (widget.obra['capa'] ?? widget.obra['image'])?.toString();
+                            final coverBytes = widget.obra['coverBytes'] as Uint8List?;
+                            final titulo = (widget.obra['titulo'] ?? widget.obra['title'])?.toString();
+                            if (isPdfCover(capaStr, coverBytes)) {
+                              return buildPdfCoverThumbnail(width: 190, height: 270, label: titulo);
+                            }
+                            if (coverBytes != null && coverBytes.isNotEmpty) {
+                              return Image.memory(coverBytes, fit: BoxFit.cover);
+                            }
+                            if (capaStr != null && capaStr.isNotEmpty) {
+                              if (capaStr.startsWith('imagens/') || capaStr.startsWith('assets/')) {
+                                return Image.asset(capaStr, fit: BoxFit.cover);
+                              }
+                              return Image.network(capaStr, fit: BoxFit.cover);
+                            }
+                            return Container(
+                              color: Colors.grey.shade300,
+                              child: const Center(
+                                child: Icon(Icons.menu_book, size: 64, color: Colors.grey),
+                              ),
+                            );
+                          }(),
                         ),
                       ),
                       Positioned(
