@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/colors.dart';
-import '../../../../core/theme/sizes.dart';
-import '../../../../core/widgets/botaoSecundario.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
+import 'meus_dados_screen.dart';
+import 'fale_conosco_screen.dart';
 
-class PerfilProfessorScreen extends StatelessWidget {
+class PerfilProfessorScreen extends StatefulWidget {
   final String nome;
   final String email;
   final String escola;
@@ -18,74 +17,140 @@ class PerfilProfessorScreen extends StatelessWidget {
   });
 
   @override
+  State<PerfilProfessorScreen> createState() => _PerfilProfessorScreenState();
+}
+
+class _PerfilProfessorScreenState extends State<PerfilProfessorScreen> {
+  late String _nome;
+  late String _email;
+  late String _escola;
+
+  static const Color _bgColor = Color(0xFFF9F5EC);
+  static const Color _primaryTextColor = Color(0xFF4A2525);
+  static const Color _secondaryTextColor = Color(0xFF7A6B63);
+  static const Color _borderColor = Color(0xFFE2DDD5);
+
+  @override
+  void initState() {
+    super.initState();
+    _nome = widget.nome;
+    _email = widget.email;
+    _escola = widget.escola;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(AppSizes.spacingLg),
-      child: Column(
-        children: [
-          SizedBox(height: AppSizes.spacingLg),
-
-          // --- cabeçalho DO PROFESSOR ---
-          Text(
-            nome,
-            style: TextStyle(
-              color: AppColors.titleText,
-              fontSize: AppSizes.fontHeading,
-              fontWeight: FontWeight.w800,
+    return Container(
+      color: _bgColor,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // --- Cabeçalho do Professor ---
+            Text(
+              _nome,
+              style: const TextStyle(
+                color: _primaryTextColor,
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
-          SizedBox(height: AppSizes.spacingXs),
-          Text(
-            email,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: AppSizes.fontBody,
+            const SizedBox(height: 6),
+            Text(
+              _email,
+              style: const TextStyle(
+                color: _secondaryTextColor,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            escola.toUpperCase(),
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: AppSizes.fontSmall,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.0,
+            const SizedBox(height: 6),
+            Text(
+              _escola.toUpperCase(),
+              style: const TextStyle(
+                color: Color(0xFF8D6E63),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.0,
+              ),
             ),
-          ),
+            const SizedBox(height: 36),
 
-          SizedBox(height: AppSizes.spacingXl),
+            // --- CARD 1: MINHAS INFORMAÇÕES ---
+            _buildOptionCard(
+              icon: Icons.badge_outlined,
+              title: 'Minhas Informações',
+              subtitle: 'Atualize suas informações pessoais.',
+              onTap: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final result = await Navigator.push<Map<String, String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MeusDadosScreen(
+                      nome: _nome,
+                      email: _email,
+                      escola: _escola,
+                    ),
+                  ),
+                );
+                if (result != null) {
+                  setState(() {
+                    _nome = result['nome'] ?? _nome;
+                    _email = result['email'] ?? _email;
+                    _escola = result['escola'] ?? _escola;
+                  });
+                  if (!mounted) return;
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Informações atualizadas com sucesso!'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: Color(0xFFA1A32D),
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 16),
 
-          // --- CARD 1: MINHAS INFORMAÇÕES ---
-          _buildOptionCard(
-            icon: Icons.badge_outlined,
-            title: 'Minhas Informações',
-            subtitle: 'Atualize suas informações pessoais.',
-            onTap: () {
-              // Ação futura para editar dados do perfil
-            },
-          ),
+            // --- CARD 2: FALE CONOSCO ---
+            _buildOptionCard(
+              icon: Icons.headset_mic_outlined,
+              title: 'Fale Conosco',
+              subtitle: 'Sinta-se à vontade para nos enviar uma mensagem.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (context) => const FaleConoscoScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 48),
 
-          SizedBox(height: AppSizes.spacingMd),
-
-          // --- CARD 2: FALE CONOSCO ---
-          _buildOptionCard(
-            icon: Icons.headset_mic_outlined,
-            title: 'Fale Conosco',
-            subtitle: 'Sinta-se à vontade para nos enviar uma mensagem.',
-            onTap: () {
-              // Ação futura para suporte/contato
-            },
-          ),
-
-          SizedBox(height: AppSizes.spacingXl * 1.5),
-
-          // --- BOTÃO DE SAIR ---
-          BotaoSecundario(
-            texto: 'Sair da Conta',
-            icone: Icons.logout,
-            onPressed: () => _confirmarLogout(context),
-          ),
-        ],
+            // --- BOTÃO DE SAIR ---
+            OutlinedButton.icon(
+              onPressed: () => _confirmarLogout(context),
+              icon: const Icon(Icons.logout_rounded, color: Color(0xFFD32F2F), size: 20),
+              label: const Text(
+                'Sair',
+                style: TextStyle(
+                  color: Color(0xFFD32F2F),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -97,53 +162,66 @@ class PerfilProfessorScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Container(
-      width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-        border: Border.all(color: AppColors.border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
-            padding: EdgeInsets.all(AppSizes.spacingLg),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
             child: Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: AppColors.inputBackground,
-                    shape: BoxShape.circle,
+                    color: const Color(0xFFF7F3EB),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(icon, color: AppColors.primary, size: 24),
+                  child: Icon(icon, color: const Color(0xFFA1A32D), size: 28),
                 ),
-                SizedBox(width: AppSizes.spacingMd),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: AppSizes.fontTitle,
-                          fontWeight: FontWeight.w800,
+                        style: const TextStyle(
+                          color: _primaryTextColor,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: AppSizes.spacingXs),
+                      const SizedBox(height: 3),
                       Text(
                         subtitle,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: AppSizes.fontSmall,
+                        style: const TextStyle(
+                          color: _secondaryTextColor,
+                          fontSize: 13,
+                          height: 1.3,
                         ),
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFFBDB6AC),
+                  size: 24,
                 ),
               ],
             ),

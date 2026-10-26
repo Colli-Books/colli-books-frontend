@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/theme/colors.dart';
+
 import '../../../../core/widgets/fullscreen_image_viewer.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
@@ -10,6 +10,8 @@ import '../../../institucional/presentation/screens/sobre_nos_screen.dart';
 import '../../../institucional/presentation/screens/termos_uso_screen.dart';
 import '../../../admin/data/catalogo_data.dart';
 import '../widgets/navbar_professor.dart';
+import 'meus_dados_screen.dart';
+import 'fale_conosco_screen.dart';
 
 class ProfessorHomeScreen extends StatefulWidget {
   final String professorEmail;
@@ -31,8 +33,20 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
   List<String> _selectedTemas = [];
   final Set<String> _expandedThemes = {};
 
+  late String _professorNome;
+  late String _professorEmail;
+  late String _professorEscola;
+
   // Lista de livros selecionados/favoritados pelo educador
   final List<Map<String, dynamic>> _selecao = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _professorNome = 'Ana Silva';
+    _professorEmail = widget.professorEmail.isNotEmpty ? widget.professorEmail : 'email@email.com';
+    _professorEscola = 'Escola Primavera';
+  }
 
   Future<void> _abrirLink(String urlStr) async {
     final Uri url = Uri.parse(urlStr);
@@ -1093,54 +1107,189 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
   }
 
   Widget _buildPerfil(Color primaryText, Color secondaryText) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircleAvatar(
-              radius: 46,
-              backgroundColor: Color(0xFFE5DDD0),
-              child: Icon(Icons.school, color: AppColors.secondary, size: 52),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Informações do Professor (Nome, Email, Escola)
+          Text(
+            _professorNome,
+            style: TextStyle(
+              color: primaryText,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
             ),
-            const SizedBox(height: 16),
-            Text(
-              widget.professorEmail,
-              style: TextStyle(color: primaryText, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _professorEmail,
+            style: TextStyle(
+              color: secondaryText,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Escola Estadual Machado de Assis',
-              style: TextStyle(color: secondaryText, fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _professorEscola.toUpperCase(),
+            style: const TextStyle(
+              color: Color(0xFF8D6E63),
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F4F5),
-                borderRadius: BorderRadius.circular(12),
+          ),
+          const SizedBox(height: 36),
+
+          // 2. Card: Minhas Informações
+          _buildPerfilOptionCard(
+            icon: Icons.badge_outlined,
+            title: 'Minhas Informações',
+            subtitle: 'Atualize suas informações pessoais.',
+            onTap: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              final result = await Navigator.push<Map<String, String>>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MeusDadosScreen(
+                    nome: _professorNome,
+                    email: _professorEmail,
+                    escola: _professorEscola,
+                  ),
+                ),
+              );
+              if (result != null) {
+                setState(() {
+                  _professorNome = result['nome'] ?? _professorNome;
+                  _professorEmail = result['email'] ?? _professorEmail;
+                  _professorEscola = result['escola'] ?? _professorEscola;
+                });
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Informações atualizadas com sucesso!'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Color(0xFFA1A32D),
+                  ),
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // 3. Card: Fale Conosco
+          _buildPerfilOptionCard(
+            icon: Icons.headset_mic_outlined,
+            title: 'Fale Conosco',
+            subtitle: 'Sinta-se à vontade para nos enviar uma mensagem.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => const FaleConoscoScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 48),
+
+          // 4. Botão Sair
+          OutlinedButton.icon(
+            onPressed: () => _confirmarLogout(context),
+            icon: const Icon(Icons.logout_rounded, color: Color(0xFFD32F2F), size: 20),
+            label: const Text(
+              'Sair',
+              style: TextStyle(
+                color: Color(0xFFD32F2F),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
-              child: const Text(
-                'Educador Ativo',
-                style: TextStyle(color: Color(0xFF1D8E9E), fontSize: 12, fontWeight: FontWeight.bold),
-              ),
             ),
-            const SizedBox(height: 36),
-            OutlinedButton.icon(
-              onPressed: () => _confirmarLogout(context),
-              icon: const Icon(Icons.exit_to_app, color: Color(0xFFC62828)),
-              label: const Text(
-                'Sair da Conta',
-                style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFC62828)),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             ),
-          ],
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerfilOptionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2DDD5), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7F3EB),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: const Color(0xFFA1A32D), size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Color(0xFF4A2525),
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: Color(0xFF7A6B63),
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFFBDB6AC),
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
