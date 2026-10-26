@@ -205,12 +205,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                 (book['escolaridades'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
             final bookTemas =
                 (book['temas'] as List<dynamic>?)?.map((t) => t.toString()).toList() ?? [];
-            final interdisciplinaridade = book['interdisciplinaridade'] as Map<String, dynamic>?;
-            final disciplinas = (book['disciplinas'] as List<dynamic>?)?.map((d) => d.toString()).toList() ??
-                ['Língua Portuguesa', 'Artes'];
             final storeUrl = book['storeUrl'] as String? ?? 'https://www.collibooksloja.com/';
-            final paginas = book['paginas']?.toString() ?? '38';
-            final edicao = book['edicao']?.toString() ?? '1ª';
 
             return Container(
               height: MediaQuery.of(context).size.height * 0.90,
@@ -384,47 +379,70 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                           ],
                           const SizedBox(height: 24),
 
-                          // 4. ESCOLARIDADES E TEMAS (Idênticos aos cards da Seleção e Catálogo)
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              ...bookEscolaridades.map(
+                          // 4. ESCOLARIDADES E TEMAS (Uniforme com o Admin)
+                          if (bookEscolaridades.isNotEmpty) ...[
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: bookEscolaridades.map(
                                 (e) => Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFD4E6F1),
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: const Color(0xFFEBF5FB),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFFAED6F1), width: 1.2),
                                   ),
-                                  child: Text(
-                                    e,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF1F618D),
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.school_rounded, size: 14, color: Color(0xFF1F618D)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        e,
+                                        style: const TextStyle(
+                                          color: Color(0xFF1B4F72),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                              ...bookTemas.map(
+                              ).toList(),
+                            ),
+                            if (bookTemas.isNotEmpty) const SizedBox(height: 8),
+                          ],
+                          if (bookTemas.isNotEmpty) ...[
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: bookTemas.map(
                                 (t) => Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFFDEBD0),
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: const Color(0xFFFDF2E9),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFFF5CBA7), width: 1.2),
                                   ),
-                                  child: Text(
-                                    t,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFFD35400),
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.label_rounded, size: 14, color: Color(0xFFD35400)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        t,
+                                        style: const TextStyle(
+                                          color: Color(0xFFBA4A00),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ).toList(),
+                            ),
+                          ],
                           const SizedBox(height: 14),
 
                           // 5. TÍTULO E AUTOR(A)
@@ -446,17 +464,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          if (book['ilustracoes'] != null) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              'Ilustrações: ${book['ilustracoes']}',
-                              style: const TextStyle(
-                                color: secondaryTextColor,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+
                           const SizedBox(height: 16),
                           const Divider(color: Color(0xFFEBE8E0)),
                           const SizedBox(height: 16),
@@ -569,185 +577,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
-
-                          // 8. CARDS DE ESPECIFICAÇÕES: PÁGINAS, EDIÇÃO (Sem ISBN)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: const Color(0xFFEBE8E0)),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'PÁGINAS',
-                                        style: TextStyle(
-                                          color: secondaryTextColor,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.8,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        paginas,
-                                        style: const TextStyle(
-                                          color: primaryTextColor,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: const Color(0xFFEBE8E0)),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'EDIÇÃO',
-                                        style: TextStyle(
-                                          color: secondaryTextColor,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.8,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        edicao,
-                                        style: const TextStyle(
-                                          color: primaryTextColor,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // 9. POSSIBILIDADES INTERDISCIPLINARES
-                          const Text(
-                            'POSSIBILIDADES INTERDISCIPLINARES',
-                            style: TextStyle(
-                              color: Color(0xFF6B5B53),
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (interdisciplinaridade != null && interdisciplinaridade.isNotEmpty) ...[
-                            ...interdisciplinaridade.entries.map((entry) {
-                              final disciplina = entry.key;
-                              final topicos = (entry.value as List<dynamic>).map((e) => e.toString()).toList();
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: const Color(0xFFEBE8E0)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: const BoxDecoration(
-                                            color: accentColor,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          disciplina,
-                                          style: const TextStyle(
-                                            color: primaryTextColor,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    ...topicos.map((topico) => Padding(
-                                          padding: const EdgeInsets.only(left: 16, bottom: 4),
-                                          child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                '• ',
-                                                style: TextStyle(
-                                                  color: accentColor,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  topico,
-                                                  style: const TextStyle(
-                                                    color: Color(0xFF554440),
-                                                    fontSize: 13,
-                                                    height: 1.35,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        )),
-                                  ],
-                                ),
-                              );
-                            }),
-                          ] else ...[
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: disciplinas.map((d) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: const Color(0xFFD8D2C6)),
-                                  ),
-                                  child: Text(
-                                    d,
-                                    style: const TextStyle(
-                                      color: primaryTextColor,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                          const SizedBox(height: 36),
+                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
@@ -783,7 +613,7 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
           'imagens/Logo-Colli-Booksteste.webp',
           height: 38,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Text(
+          errorBuilder: (context, error, stackTrace) => const Text(
             'Colli Books',
             style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A2525), fontSize: 18),
           ),

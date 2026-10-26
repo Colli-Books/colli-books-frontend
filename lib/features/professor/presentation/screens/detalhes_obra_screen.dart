@@ -49,21 +49,11 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
     final sinopse =
         widget.obra['sinopse']?.toString() ??
         'Uma aventura mágica que leva os pequenos leitores ao coração de uma floresta encantada...';
-    final paginas = widget.obra['paginas']?.toString() ?? '48';
-    final edicao = widget.obra['edicao']?.toString() ?? '1ª';
-    final isbn = widget.obra['isbn']?.toString() ?? '978-85-12345-67-8';
-
     // Tratamento seguro para tags
     final rawTags = widget.obra['tags'];
     final List<String> tags = rawTags is List
         ? rawTags.map((e) => e.toString()).toList()
         : ['INFANTIL', 'AVENTURA'];
-
-    // Tratamento seguro para disciplinas
-    final rawDisciplinas = widget.obra['disciplinas'];
-    final List<String> disciplinas = rawDisciplinas is List
-        ? rawDisciplinas.map((e) => e.toString()).toList()
-        : ['Língua Portuguesa', 'Ciências', 'Educação Ambiental'];
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -424,92 +414,12 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSizes.spacingLg),
-
-                  // --- ESPECIFICAÇÕES ---
-                  Row(
-                    children: [
-                      Expanded(child: _buildInfoBox('PÁGINAS', paginas)),
-                      const SizedBox(width: AppSizes.spacingMd),
-                      Expanded(child: _buildInfoBox('EDIÇÃO', edicao)),
-                    ],
-                  ),
-                  const SizedBox(height: AppSizes.spacingMd),
-                  _buildInfoBox('ISBN', isbn, isFullWidth: true),
-                  const SizedBox(height: AppSizes.spacingXl),
-
-                  // --- DISCIPLINAS ATENDIDAS ---
-                  const Text(
-                    'DISCIPLINAS ATENDIDAS',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.spacingSm),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: disciplinas.map((disc) {
-                      return Chip(
-                        backgroundColor: AppColors.cardBackground,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: const BorderSide(color: AppColors.border),
-                        ),
-                        label: Text(
-                          disc,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
                   const SizedBox(height: 32),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoBox(String label, String valor, {bool isFullWidth = false}) {
-    return Container(
-      width: isFullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(AppSizes.spacingMd),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            valor,
-            style: const TextStyle(
-              color: AppColors.titleText,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
       ),
     );
   }
