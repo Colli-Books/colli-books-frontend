@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/validators.dart';
 import '../../data/services/auth_api_service.dart';
 import '../../../admin/presentation/screens/admin_home_screen.dart';
 import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
@@ -25,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscureNewPassword = true;
   bool _isLoading = false;
   String? _recoveryFeedback;
+  String? _forgotEmailError;
   bool _showTokenFields = false;
 
   void _fazerLogin() async {
@@ -101,11 +103,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _enviarRecuperacaoSenha() async {
     final email = _forgotEmailController.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
+    final validationError = FormValidators.validateEmail(email);
+
+    if (validationError != null) {
+      setState(() {
+        _forgotEmailError = validationError;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, informe um endereço de e-mail válido.'),
-          backgroundColor: Color(0xFFC62828),
+        SnackBar(
+          content: Text(validationError),
+          backgroundColor: const Color(0xFFC62828),
         ),
       );
       return;
@@ -114,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = true;
       _recoveryFeedback = null;
+      _forgotEmailError = null;
     });
 
     try {
@@ -141,6 +149,17 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(
           content: Text('Informe o código/token recebido por e-mail.'),
           backgroundColor: Color(0xFFC62828),
+        ),
+      );
+      return;
+    }
+
+    final passwordError = FormValidators.validatePassword(newPassword);
+    if (passwordError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(passwordError),
+          backgroundColor: const Color(0xFFC62828),
         ),
       );
       return;
@@ -505,8 +524,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextField(
                                 controller: _forgotEmailController,
                                 keyboardType: TextInputType.emailAddress,
+                                onChanged: (val) {
+                                  if (_forgotEmailError != null) {
+                                    setState(() => _forgotEmailError = null);
+                                  }
+                                },
                                 decoration: InputDecoration(
                                   hintText: 'seu@email.com',
+                                  errorText: _forgotEmailError,
                                   prefixIcon: const Icon(Icons.mark_email_read_outlined, color: Colors.grey),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
