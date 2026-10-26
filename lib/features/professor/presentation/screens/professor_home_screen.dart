@@ -534,12 +534,14 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                                               children: [
                                                 Icon(Icons.school_outlined, color: accentColor, size: 24),
                                                 SizedBox(width: 10),
-                                                Text(
-                                                  'Material Pedagógico',
-                                                  style: TextStyle(
-                                                    color: primaryTextColor,
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
+                                                Expanded(
+                                                  child: Text(
+                                                    'Material Pedagógico',
+                                                    style: TextStyle(
+                                                      color: primaryTextColor,
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
