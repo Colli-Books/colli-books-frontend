@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/network/api_exception.dart';
+import '../../data/services/professor_api_service.dart';
 
 class MeusDadosScreen extends StatefulWidget {
   final String nome;
@@ -21,6 +23,9 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
   late TextEditingController _nomeController;
   late TextEditingController _emailController;
   late TextEditingController _escolaController;
+
+  final ProfessorApiService _professorApiService = ProfessorApiService();
+  bool _isLoading = false;
 
   static const Color _bgColor = Color(0xFFF9F5EC);
   static const Color _primaryTextColor = Color(0xFF4A2525);
@@ -45,14 +50,125 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
     super.dispose();
   }
 
-  void _salvar() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final updatedData = {
-        'nome': _nomeController.text.trim(),
-        'email': _emailController.text.trim(),
-        'escola': _escolaController.text.trim(),
-      };
-      Navigator.pop(context, updatedData);
+  Future<void> _salvar() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final novoNome = _nomeController.text.trim();
+    final novoEmail = _emailController.text.trim();
+    final novaEscola = _escolaController.text.trim();
+
+    final bool emailAlterado = novoEmail.toLowerCase() != widget.email.trim().toLowerCase();
+
+    // Se o e-mail foi alterado, exige confirmação explícita
+    if (emailAlterado) {
+      final bool? confirmar = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: const [
+              Icon(Icons.mark_email_unread_outlined, color: _primaryTextColor),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Alterar E-mail?',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _primaryTextColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Você está solicitando a alteração do seu e-mail de acesso:\n\n'
+            '• De: ${widget.email}\n'
+            '• Para: $novoEmail\n\n'
+            'A alteração de e-mail requer sincronização segura via API. '
+            'Caso necessário, um link de confirmação será enviado para o novo endereço.',
+            style: const TextStyle(fontSize: 14, color: _secondaryTextColor, height: 1.4),
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar', style: TextStyle(color: _secondaryTextColor)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accentColor,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Confirmar Alteração', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmar != true) return;
+      if (!mounted) return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _professorApiService.updateProfile(
+        nome: novoNome,
+        email: novoEmail,
+        escola: novaEscola,
+      );
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            emailAlterado
+                ? 'E-mail e dados atualizados! Verifique se uma confirmação foi enviada para $novoEmail.'
+                : result.message,
+          ),
+          backgroundColor: result.isOffline ? const Color(0xFFE5A93C) : _accentColor,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+
+      nav.pop(result.data);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Falha na Atualização', style: TextStyle(color: _cancelColor, fontWeight: FontWeight.bold)),
+          content: Text(e.message, style: const TextStyle(color: _secondaryTextColor)),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              style: ElevatedButton.styleFrom(backgroundColor: _cancelColor),
+              child: const Text('OK', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erro ao atualizar: $e'),
+          backgroundColor: _cancelColor,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -161,9 +277,37 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
 
                       // Campo: E-mail
                       _buildFieldLabel('E-mail'),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFBF4E6),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFEAD9BA)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF9E651E)),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'A alteração do e-mail atualiza sua credencial de login na API e requer validação de segurança.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF7A4E17),
+                                  height: 1.35,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       TextFormField(
                         controller: _emailController,
+                        enabled: !_isLoading,
                         keyboardType: TextInputType.emailAddress,
                         style: const TextStyle(
                           fontSize: 15,
@@ -192,6 +336,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _escolaController,
+                        enabled: !_isLoading,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -215,11 +360,20 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                         width: double.infinity,
                         height: 52,
                         child: ElevatedButton.icon(
-                          onPressed: _salvar,
-                          icon: const Icon(Icons.edit_note_outlined, color: Colors.white, size: 22),
-                          label: const Text(
-                            'Salvar Alterações',
-                            style: TextStyle(
+                          onPressed: _isLoading ? null : _salvar,
+                          icon: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.cloud_upload_outlined, color: Colors.white, size: 22),
+                          label: Text(
+                            _isLoading ? 'Sincronizando via API...' : 'Salvar Alterações',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -227,6 +381,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _accentColor,
+                            disabledBackgroundColor: _accentColor.withValues(alpha: 0.6),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -241,7 +396,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                         width: double.infinity,
                         height: 52,
                         child: ElevatedButton.icon(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: _isLoading ? null : () => Navigator.pop(context),
                           icon: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
                           label: const Text(
                             'Cancelar',
@@ -253,6 +408,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _cancelColor,
+                            disabledBackgroundColor: _cancelColor.withValues(alpha: 0.6),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),

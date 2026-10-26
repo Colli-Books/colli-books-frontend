@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,11 +15,25 @@ class FaleConoscoScreen extends StatelessWidget {
   static const String _mapsUrl =
       'https://www.google.com/maps?cid=16142510610135156578&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF';
 
+  static const String _linkedInUrl =
+      'https://www.linkedin.com/in/colli-books-editora-1090071a7/';
+
   Future<void> _abrirLink(String urlStr) async {
     final Uri url = Uri.parse(urlStr);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       debugPrint('Não foi possível abrir o link: $urlStr');
     }
+  }
+
+  void _copiarParaClipboard(BuildContext context, String texto, String tipo) {
+    Clipboard.setData(ClipboardData(text: texto));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$tipo copiado para a área de transferência!'),
+        backgroundColor: const Color(0xFFA1A32D),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -86,29 +101,29 @@ class FaleConoscoScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Card 2: Telefone
+              // Card 2: Telefone (Copiar)
               _buildContactCard(
                 category: 'TELEFONE',
                 title: '+55 (61) 98212-7673',
-                subtitle: 'Ligação direta com a editora',
+                subtitle: 'Toque para copiar número do telefone',
                 icon: Icons.phone_rounded,
                 iconColor: const Color(0xFF2E7D32),
                 iconBgColor: const Color(0xFFF1F8E9),
-                trailingIcon: Icons.arrow_outward_rounded,
-                onTap: () => _abrirLink('tel:+5561982127673'),
+                trailingIcon: Icons.copy_rounded,
+                onTap: () => _copiarParaClipboard(context, '+55 (61) 98212-7673', 'Telefone'),
               ),
               const SizedBox(height: 12),
 
-              // Card 3: E-mail Comercial
+              // Card 3: E-mail Comercial (Copiar)
               _buildContactCard(
                 category: 'E-MAIL COMERCIAL',
                 title: 'vendas@collibooks.com',
-                subtitle: 'Envie propostas e orçamentos',
+                subtitle: 'Toque para copiar endereço de e-mail',
                 icon: Icons.mail_outline_rounded,
                 iconColor: const Color(0xFFC07020),
                 iconBgColor: const Color(0xFFFFF3E0),
-                trailingIcon: Icons.send_outlined,
-                onTap: () => _abrirLink('mailto:vendas@collibooks.com'),
+                trailingIcon: Icons.copy_rounded,
+                onTap: () => _copiarParaClipboard(context, 'vendas@collibooks.com', 'E-mail comercial'),
               ),
               const SizedBox(height: 12),
 
@@ -167,7 +182,7 @@ class FaleConoscoScreen extends StatelessWidget {
                     icon: FontAwesomeIcons.linkedin,
                     label: 'LinkedIn',
                     brandColor: const Color(0xFF0077B5),
-                    onTap: () => _abrirLink('https://www.linkedin.com/company/collibooks/'),
+                    onTap: () => _abrirLink(_linkedInUrl),
                   ),
                 ],
               ),

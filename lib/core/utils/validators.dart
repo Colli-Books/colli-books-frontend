@@ -114,4 +114,44 @@ class FormValidators {
 
     return null;
   }
+
+  /// Retorna true se o e-mail estiver em formato válido
+  static bool isValidEmail(String? email) {
+    if (email == null || email.trim().isEmpty) return false;
+    final regex = RegExp(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
+    return regex.hasMatch(email.trim());
+  }
+
+  /// Retorna mensagem de erro amigável ou null se o e-mail for válido
+  static String? validateEmail(String? email) {
+    if (email == null || email.trim().isEmpty) {
+      return 'Por favor, informe seu e-mail.';
+    }
+    if (!isValidEmail(email)) {
+      return 'Informe um e-mail válido (ex: usuario@escola.com.br).';
+    }
+    return null;
+  }
+
+  /// Valida senha conforme contrato de autenticação (mínimo 8 caracteres, letra e número)
+  static bool isValidPassword(String? password) {
+    if (password == null || password.length < 8) return false;
+    final hasLetter = RegExp(r'[a-zA-Z]').hasMatch(password);
+    final hasDigit = RegExp(r'[0-9]').hasMatch(password);
+    return hasLetter && hasDigit;
+  }
+
+  /// Retorna mensagem descritiva de validação de senha
+  static String? validatePassword(String? password) {
+    if (password == null || password.isEmpty) {
+      return 'Por favor, informe sua senha.';
+    }
+    if (password.length < 8) {
+      return 'A senha deve conter no mínimo 8 caracteres.';
+    }
+    if (!RegExp(r'[a-zA-Z]').hasMatch(password) || !RegExp(r'[0-9]').hasMatch(password)) {
+      return 'A senha deve conter pelo menos uma letra e um número.';
+    }
+    return null;
+  }
 }

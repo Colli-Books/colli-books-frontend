@@ -227,6 +227,12 @@ class Sidebar extends StatelessWidget {
                   brandColor: const Color(0xFF1877F2),
                   onTap: () => abrirLink('https://www.facebook.com/collibooks/'),
                 ),
+                _buildSocialItem(
+                  icon: FontAwesomeIcons.linkedin,
+                  name: 'LinkedIn',
+                  brandColor: const Color(0xFF0077B5),
+                  onTap: () => abrirLink('https://www.linkedin.com/in/colli-books-editora-1090071a7/'),
+                ),
               ],
             ),
           ),
