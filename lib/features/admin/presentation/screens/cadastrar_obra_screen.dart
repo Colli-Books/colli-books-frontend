@@ -57,46 +57,12 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImageFile() async {
-    try {
-      final file = await FilePicker.pickFile(
-        type: FileType.image,
-      );
-      if (file != null) {
-        final bytes = await file.readAsBytes();
-        setState(() {
-          _coverBytes = bytes;
-          _coverImagePath = file.path ?? file.name;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Imagem "${file.name}" carregada com sucesso!'),
-              backgroundColor: const Color(0xFF2E7D32),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Não foi possível carregar a imagem: $e'),
-            backgroundColor: const Color(0xFFC62828),
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     const backgroundColor = Color(0xFFF9F5EC);
     const primaryTextColor = Color(0xFF4A2525);
     const secondaryTextColor = Color(0xFF6B6B6B);
     const buttonGreen = Color(0xFFA1A32D);
-    const buttonRed = Color(0xFFE56B6F);
     const borderColor = Color(0xFFD6D6D6);
 
     return Scaffold(
@@ -171,7 +137,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                                 coverBytes: _coverBytes,
                                 title: _titleController.text.isNotEmpty ? _titleController.text : 'Capa da Obra',
                               )
-                          : _pickImageFile,
+                          : _showChangeCoverDialog,
                       borderRadius: BorderRadius.circular(12),
                       child: Stack(
                         clipBehavior: Clip.none,
@@ -206,7 +172,7 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                             bottom: 8,
                             right: 8,
                             child: InkWell(
-                              onTap: _pickImageFile,
+                              onTap: _showChangeCoverDialog,
                               borderRadius: BorderRadius.circular(20),
                               child: Container(
                                 padding: const EdgeInsets.all(8),
@@ -231,10 +197,10 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                     runSpacing: 10,
                     children: [
                       ElevatedButton.icon(
-                        onPressed: _pickImageFile,
-                        icon: const Icon(Icons.upload_file_rounded, size: 18, color: Colors.white),
+                        onPressed: _showChangeCoverDialog,
+                        icon: const Icon(Icons.link_rounded, size: 18, color: Colors.white),
                         label: const Text(
-                          'Escolher do Computador',
+                          'Link Web / Acervo',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -243,38 +209,6 @@ class _CadastrarObraScreenState extends State<CadastrarObraScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: _showChangeCoverDialog,
-                        icon: const Icon(Icons.link_rounded, size: 18, color: primaryTextColor),
-                        label: const Text(
-                          'Link Web / Acervo',
-                          style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          side: const BorderSide(color: Color(0xFFBCAAA4)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                      if ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
-                        OutlinedButton.icon(
-                          onPressed: () => abrirVisualizadorImagem(
-                            context,
-                            imagePath: _coverImagePath,
-                            coverBytes: _coverBytes,
-                            title: _titleController.text.isNotEmpty ? _titleController.text : 'Capa da Obra',
-                          ),
-                          icon: const Icon(Icons.fullscreen_rounded, size: 18, color: primaryTextColor),
-                          label: const Text(
-                            'Ver em Tela Cheia',
-                            style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            side: const BorderSide(color: Color(0xFFBCAAA4)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                        ),
                       if ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
                         OutlinedButton.icon(
                           onPressed: () {
