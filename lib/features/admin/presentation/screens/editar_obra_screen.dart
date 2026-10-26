@@ -182,25 +182,6 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                                 ),
                               ),
                             ),
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: InkWell(
-                              onTap: _showChangeCoverDialog,
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: buttonGreen,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6),
-                                  ],
-                                ),
-                                child: const Icon(Icons.add_a_photo, size: 16, color: Colors.white),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),

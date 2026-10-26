@@ -5,10 +5,10 @@ void showMultiSelectDialog({
   required BuildContext context,
   required List<String> allItems,
   required List<String> selectedItems,
-  required Function(List<String>) onConfirm,
+  required void Function(List<String>) onConfirm,
 }) {
-  List<String> tempSelected = List.from(selectedItems);
-  showDialog(
+  final tempSelected = List<String>.from(selectedItems);
+  showDialog<void>(
     context: context,
     builder: (context) {
       return StatefulBuilder(
@@ -115,7 +115,7 @@ class DeleteIconButton extends StatelessWidget {
     return InkWell(
       onTap: () => _showConfirmDialog(context),
       child: const Padding(
-        padding: EdgeInsets.all(4.0),
+        padding: EdgeInsets.all(2.0),
         child: Icon(Icons.delete_outline, size: 16, color: Color(0xFFE56B6F)),
       ),
     );

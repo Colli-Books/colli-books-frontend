@@ -291,27 +291,35 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                                 Expanded(
                                   child: Text(book['title'] as String, style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 2, overflow: TextOverflow.ellipsis),
                                 ),
+                                const SizedBox(width: 4),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFEBE8E0))),
+                                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFEBE8E0)),
+                                  ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       InkWell(
-                                          onTap: () async {
-                                            final updatedBook = await Navigator.push<dynamic>(context, MaterialPageRoute<dynamic>(builder: (context) => EditarObraScreen(bookData: book)));
-                                            if (updatedBook != null) {
-                                              setState(() {
-                                                final index = catalogBooks.indexOf(book);
-                                                if (index != -1) {
-                                                  catalogBooks[index] = updatedBook as Map<String, dynamic>;
-                                                }
-                                              });
-                                            }
-                                          },
-                                          child: const Padding(padding: EdgeInsets.all(4.0), child: Icon(Icons.edit, size: 16, color: Color(0xFF4A2525)))
+                                        onTap: () async {
+                                          final updatedBook = await Navigator.push<dynamic>(context, MaterialPageRoute<dynamic>(builder: (context) => EditarObraScreen(bookData: book)));
+                                          if (updatedBook != null) {
+                                            setState(() {
+                                              final index = catalogBooks.indexOf(book);
+                                              if (index != -1) {
+                                                catalogBooks[index] = updatedBook as Map<String, dynamic>;
+                                              }
+                                            });
+                                          }
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(2.0),
+                                          child: Icon(Icons.edit, size: 16, color: Color(0xFF4A2525)),
+                                        ),
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: 2),
                                       DeleteIconButton(itemTitle: 'Excluir Obra', onConfirm: () => setState(() => catalogBooks.remove(book)))
                                     ],
                                   ),
