@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
 import '../../../../core/widgets/dialog.dart';
+import '../../../../core/widgets/fullscreen_image_viewer.dart';
 import '../../data/catalogo_data.dart';
 import 'cadastrar_escolaridade_screen.dart';
 import 'cadastrar_obra_screen.dart';
@@ -234,18 +235,45 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 100,
-                      height: 140,
-                      margin: const EdgeInsets.all(8),
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: _buildBookCover(
-                        book['image']?.toString(),
+                    GestureDetector(
+                      onTap: () => abrirVisualizadorImagem(
+                        context,
+                        imagePath: book['image']?.toString(),
                         coverBytes: book['coverBytes'] as Uint8List?,
+                        title: book['title'] as String?,
+                      ),
+                      child: Tooltip(
+                        message: 'Toque para ver a imagem em tela cheia',
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 140,
+                              margin: const EdgeInsets.all(8),
+                              clipBehavior: Clip.antiAlias,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: _buildBookCover(
+                                book['image']?.toString(),
+                                coverBytes: book['coverBytes'] as Uint8List?,
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Expanded(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/fullscreen_image_viewer.dart';
 
 class ObraCard extends StatelessWidget {
   const ObraCard({
@@ -38,21 +39,48 @@ class ObraCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: SizedBox(
-                width: double.infinity,
-                child: capa == null || capa!.isEmpty
-                    ? placeholder
-                    : (capa!.startsWith('imagens/') || capa!.startsWith('assets/'))
-                        ? Image.asset(
-                            capa!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => placeholder,
-                          )
-                        : Image.network(
-                            capa!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => placeholder,
+              child: GestureDetector(
+                onTap: (capa != null && capa!.isNotEmpty)
+                    ? () => abrirVisualizadorImagem(
+                          context,
+                          imagePath: capa,
+                          title: titulo,
+                        )
+                    : onTap,
+                child: Stack(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: capa == null || capa!.isEmpty
+                          ? placeholder
+                          : (capa!.startsWith('imagens/') || capa!.startsWith('assets/'))
+                              ? Image.asset(
+                                  capa!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => placeholder,
+                                )
+                              : Image.network(
+                                  capa!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => placeholder,
+                                ),
+                    ),
+                    if (capa != null && capa!.isNotEmpty)
+                      Positioned(
+                        bottom: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(4),
                           ),
+                          child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
             Padding(

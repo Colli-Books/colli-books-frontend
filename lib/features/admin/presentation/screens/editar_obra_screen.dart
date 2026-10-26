@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../../../../core/utils/validators.dart';
+import '../../../../core/widgets/fullscreen_image_viewer.dart';
 import '../../data/catalogo_data.dart';
 
 class EditarObraScreen extends StatefulWidget {
@@ -176,7 +177,14 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                   const SizedBox(height: 20),
                   Center(
                     child: InkWell(
-                      onTap: _pickImageFile,
+                      onTap: ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
+                          ? () => abrirVisualizadorImagem(
+                                context,
+                                imagePath: _coverImagePath,
+                                coverBytes: _coverBytes,
+                                title: _titleController.text.isNotEmpty ? _titleController.text : 'Capa da Obra',
+                              )
+                          : _pickImageFile,
                       borderRadius: BorderRadius.circular(12),
                       child: Stack(
                         clipBehavior: Clip.none,
@@ -187,19 +195,43 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                             width: 180,
                             height: 260,
                           ),
+                          if ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                                    SizedBox(width: 4),
+                                    Text('Tela Cheia', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ),
                           Positioned(
                             bottom: 8,
                             right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: buttonGreen,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6),
-                                ],
+                            child: InkWell(
+                              onTap: _pickImageFile,
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: buttonGreen,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6),
+                                  ],
+                                ),
+                                child: const Icon(Icons.add_a_photo, size: 16, color: Colors.white),
                               ),
-                              child: const Icon(Icons.add_a_photo, size: 16, color: Colors.white),
                             ),
                           ),
                         ],
@@ -237,6 +269,25 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       ),
+                      if ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
+                        OutlinedButton.icon(
+                          onPressed: () => abrirVisualizadorImagem(
+                            context,
+                            imagePath: _coverImagePath,
+                            coverBytes: _coverBytes,
+                            title: _titleController.text.isNotEmpty ? _titleController.text : 'Capa da Obra',
+                          ),
+                          icon: const Icon(Icons.fullscreen_rounded, size: 18, color: primaryTextColor),
+                          label: const Text(
+                            'Ver em Tela Cheia',
+                            style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            side: const BorderSide(color: Color(0xFFBCAAA4)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
                       if ((_coverImagePath != null && _coverImagePath!.isNotEmpty) || _coverBytes != null)
                         OutlinedButton.icon(
                           onPressed: () {
@@ -1016,7 +1067,16 @@ class _EditarObraScreenState extends State<EditarObraScreen> {
                           children: [
                             const Text('Pré-visualização da Capa:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8C7A70))),
                             const SizedBox(height: 8),
-                            _buildCoverPreview(imagePath: previewUrl, coverBytes: previewBytes, width: 120, height: 175),
+                            InkWell(
+                              onTap: () => abrirVisualizadorImagem(
+                                context,
+                                imagePath: previewUrl,
+                                coverBytes: previewBytes,
+                                title: 'Pré-visualização da Capa',
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              child: _buildCoverPreview(imagePath: previewUrl, coverBytes: previewBytes, width: 120, height: 175),
+                            ),
                           ],
                         ),
                       ),

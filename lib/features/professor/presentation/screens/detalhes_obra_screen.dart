@@ -1,8 +1,10 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/fullscreen_image_viewer.dart';
 
 class DetalhesObraScreen extends StatefulWidget {
   final Map<String, dynamic> obra;
@@ -110,38 +112,69 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
                   color: Colors.black.withOpacity(0.15),
                 ),
                 // Capa do livro em destaque
-                Container(
-                  height: 270,
-                  width: 190,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                GestureDetector(
+                  onTap: () => abrirVisualizadorImagem(
+                    context,
+                    imagePath: (widget.obra['capa'] ?? widget.obra['image'])?.toString(),
+                    coverBytes: widget.obra['coverBytes'] as Uint8List?,
+                    title: (widget.obra['titulo'] ?? widget.obra['title'])?.toString(),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Container(
+                        height: 270,
+                        width: 190,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child:
+                              (widget.obra['capa'] != null &&
+                                  widget.obra['capa'].toString().isNotEmpty)
+                              ? Image.network(
+                                  widget.obra['capa'].toString(),
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  color: Colors.grey.shade300,
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.menu_book,
+                                      size: 64,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.65),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('Toque para tela cheia', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child:
-                        (widget.obra['capa'] != null &&
-                            widget.obra['capa'].toString().isNotEmpty)
-                        ? Image.network(
-                            widget.obra['capa'].toString(),
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            color: Colors.grey.shade300,
-                            child: const Center(
-                              child: Icon(
-                                Icons.menu_book,
-                                size: 64,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
                   ),
                 ),
               ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/colors.dart';
+import '../../../../core/widgets/fullscreen_image_viewer.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
 import '../../../institucional/presentation/screens/sobre_nos_screen.dart';
@@ -230,26 +231,60 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
                         children: [
                           // 1. CAPA DA OBRA COM BORDA E SOMBRA SUAVE (Igual print 1)
                           Center(
-                            child: Container(
-                              constraints: const BoxConstraints(maxHeight: 320, maxWidth: 280),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.08),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
+                            child: GestureDetector(
+                              onTap: () => abrirVisualizadorImagem(
+                                context,
+                                imagePath: book['image'] as String?,
+                                coverBytes: book['coverBytes'] as Uint8List?,
+                                title: book['title'] as String?,
+                              ),
+                              child: Stack(
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  Container(
+                                    constraints: const BoxConstraints(maxHeight: 320, maxWidth: 280),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.08),
+                                          blurRadius: 16,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: _buildBookImage(
+                                        book['image'] as String?,
+                                        coverBytes: book['coverBytes'] as Uint8List?,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 10,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.65),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Toque para tela cheia',
+                                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: _buildBookImage(
-                                  book['image'] as String?,
-                                  coverBytes: book['coverBytes'] as Uint8List?,
-                                  fit: BoxFit.contain,
-                                ),
                               ),
                             ),
                           ),
@@ -937,19 +972,46 @@ class _ProfessorHomeScreenState extends State<ProfessorHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // CAPA DA OBRA
-            Container(
-              width: 100,
-              height: 140,
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: _buildBookImage(
-                book['image'] as String?,
+            GestureDetector(
+              onTap: () => abrirVisualizadorImagem(
+                context,
+                imagePath: book['image'] as String?,
                 coverBytes: book['coverBytes'] as Uint8List?,
-                fit: BoxFit.cover,
+                title: book['title'] as String?,
+              ),
+              child: Tooltip(
+                message: 'Toque para ver a imagem em tela cheia',
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 140,
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _buildBookImage(
+                        book['image'] as String?,
+                        coverBytes: book['coverBytes'] as Uint8List?,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             // INFORMAÇÕES

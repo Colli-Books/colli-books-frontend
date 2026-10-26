@@ -1,7 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/fullscreen_image_viewer.dart';
 import 'detalhes_obra_screen.dart';
 
 class SelecaoProfessorScreen extends StatelessWidget {
@@ -162,26 +164,50 @@ class SelecaoProfessorScreen extends StatelessWidget {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(AppSizes.radiusMd),
                       ),
-                      child: SizedBox(
-                        height: 200,
-                        width: double.infinity,
-                        child:
-                            (obra['capa'] != null &&
-                                obra['capa'].toString().isNotEmpty)
-                            ? Image.network(
-                                obra['capa'].toString(),
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                color: Colors.grey.shade300,
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.menu_book,
-                                    size: 48,
-                                    color: Colors.grey,
-                                  ),
+                      child: GestureDetector(
+                        onTap: () => abrirVisualizadorImagem(
+                          context,
+                          imagePath: (obra['capa'] ?? obra['image'])?.toString(),
+                          coverBytes: obra['coverBytes'] as Uint8List?,
+                          title: (obra['titulo'] ?? obra['title'])?.toString(),
+                        ),
+                        child: Stack(
+                          children: [
+                            SizedBox(
+                              height: 200,
+                              width: double.infinity,
+                              child:
+                                  (obra['capa'] != null &&
+                                      obra['capa'].toString().isNotEmpty)
+                                  ? Image.network(
+                                      obra['capa'].toString(),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      color: Colors.grey.shade300,
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.menu_book,
+                                          size: 48,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                            Positioned(
+                              bottom: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.65),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
+                                child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
                               ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Padding(
