@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/network/api_exception.dart';
 import '../../../../core/utils/validators.dart';
-import '../../data/services/auth_api_service.dart';
-import '../../../admin/presentation/screens/admin_home_screen.dart';
 import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
-import '../../../professor/presentation/screens/professor_home_screen.dart';
+import '../../data/services/auth_api_service.dart';
+import '../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,8 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _resetTokenController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
 
-  final AuthApiService _authService = AuthApiService();
-
   int _currentTab = 0; // 0 = Entrar, 1 = Esqueci a Senha
   bool _obscurePassword = true;
   bool _obscureNewPassword = true;
@@ -29,95 +29,83 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _forgotEmailError;
   bool _showTokenFields = false;
 
-  void _fazerLogin() async {
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: const Color(0xFFC62828)),
+    );
+  }
+
+  // --- Mensagens por `code` (nunca decidir pelo texto da API) ---------------
+
+  String _loginMessage(ApiException e) => switch (e.code) {
+    'INVALID_CREDENTIALS' => 'E-mail ou senha incorretos.',
+    'RATE_LIMITED' => 'Muitas tentativas. Aguarde um instante e tente de novo.',
+    'VALIDATION_ERROR' => 'Confira o e-mail informado.',
+    _ => e.message, // inclui NETWORK_ERROR e TIMEOUT
+  };
+
+  String _recoveryMessage(ApiException e) => switch (e.code) {
+    'RATE_LIMITED' => 'Muitas solicitações. Aguarde um instante e tente de novo.',
+    'VALIDATION_ERROR' => 'Confira o e-mail informado.',
+    _ => e.message,
+  };
+
+  String _resetMessage(ApiException e) => switch (e.code) {
+    'RESET_TOKEN_INVALID' =>
+    'Código inválido, já usado ou expirado. Solicite um novo link.',
+    'WEAK_PASSWORD' => 'A senha deve ter entre 8 e 128 caracteres.',
+    'RATE_LIMITED' => 'Muitas tentativas. Aguarde um instante e tente de novo.',
+    'VALIDATION_ERROR' => 'Confira o código e a nova senha.',
+    _ => e.message,
+  };
+
+  // --- Ações ----------------------------------------------------------------
+
+  Future<void> _fazerLogin() async {
     final email = _emailController.text.trim();
     final senha = _passwordController.text;
 
     if (email.isEmpty || senha.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, preencha o e-mail e a senha.'),
-          backgroundColor: Color(0xFFC62828),
-        ),
-      );
+      _showError('Por favor, preencha o e-mail e a senha.');
+      return;
+    }
+    final emailError = FormValidators.validateEmail(email);
+    if (emailError != null) {
+      _showError(emailError);
       return;
     }
 
+    final auth = context.read<AuthController>(); // antes do await
     setState(() => _isLoading = true);
-
-    // Tentativa com backend API
     try {
-      final response = await _authService.login(email: email, password: senha);
+      await auth.login(email, senha);
+      // Sucesso: o AuthGate troca de tela (admin x professor pelo `role`).
+      // NÃO navegue manualmente aqui.
+    } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      final user = response['user'] as Map<String, dynamic>?;
-      final role = user?['role']?.toString().toLowerCase();
-
-      if (role == 'admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute<void>(builder: (context) => const AdminHomeScreen()),
-        );
-        return;
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute<void>(
-            builder: (context) => ProfessorHomeScreen(
-              professorEmail: user?['email']?.toString() ?? email,
-            ),
-          ),
-        );
-        return;
-      }
-    } catch (_) {
-      // Fallback local caso o backend ainda não esteja em execução
+      _showError(_loginMessage(e));
+    } catch (e, st) {
+      // Bug inesperado (ex.: JSON fora do formato): não esconder nos logs.
+      debugPrint('Falha inesperada no login: $e\n$st');
       if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      if (email == 'admin' && senha == '123') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute<void>(builder: (context) => const AdminHomeScreen()),
-        );
-      } else if ((email.toLowerCase() == 'professor' || email.contains('@')) && senha.isNotEmpty) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute<void>(
-            builder: (context) => ProfessorHomeScreen(
-              professorEmail: email.contains('@') ? email : 'professor@escola.edu.br',
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Credenciais incorretas! Tente admin / 123 ou professor / 123'),
-            backgroundColor: Color(0xFFC62828),
-          ),
-        );
-      }
+      _showError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      // Em sucesso a tela já foi descartada: mounted == false.
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _enviarRecuperacaoSenha() async {
+  Future<void> _enviarRecuperacaoSenha() async {
     final email = _forgotEmailController.text.trim();
     final validationError = FormValidators.validateEmail(email);
 
     if (validationError != null) {
-      setState(() {
-        _forgotEmailError = validationError;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(validationError),
-          backgroundColor: const Color(0xFFC62828),
-        ),
-      );
+      setState(() => _forgotEmailError = validationError);
+      _showError(validationError);
       return;
     }
 
+    final service = context.read<AuthApiService>();
     setState(() {
       _isLoading = true;
       _recoveryFeedback = null;
@@ -125,66 +113,54 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final msg = await _authService.forgotPassword(email);
+      final msg = await service.forgotPassword(email);
       if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _recoveryFeedback = msg;
-      });
-    } catch (e) {
+      setState(() => _recoveryFeedback = msg); // 202: sempre a mesma resposta
+    } on ApiException catch (e) {
+      // Falha real (rede, 429, 422): NÃO fingir que o e-mail foi enviado.
       if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _recoveryFeedback = 'Se houver uma conta com este e-mail, enviaremos um link de redefinição.';
-      });
+      _showError(_recoveryMessage(e));
+    } catch (e, st) {
+      debugPrint('Falha inesperada no forgot-password: $e\n$st');
+      if (!mounted) return;
+      _showError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _confirmarRedefinicaoSenha() async {
+  Future<void> _confirmarRedefinicaoSenha() async {
     final token = _resetTokenController.text.trim();
     final newPassword = _newPasswordController.text;
 
     if (token.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Informe o código/token recebido por e-mail.'),
-          backgroundColor: Color(0xFFC62828),
-        ),
-      );
+      _showError('Informe o código/token recebido por e-mail.');
       return;
     }
 
     final passwordError = FormValidators.validatePassword(newPassword);
     if (passwordError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(passwordError),
-          backgroundColor: const Color(0xFFC62828),
-        ),
-      );
+      _showError(passwordError);
       return;
     }
 
     if (newPassword.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('A nova senha deve ter no mínimo 8 caracteres.'),
-          backgroundColor: Color(0xFFC62828),
-        ),
-      );
+      _showError('A nova senha deve ter no mínimo 8 caracteres.');
       return;
     }
 
+    final service = context.read<AuthApiService>();
     setState(() => _isLoading = true);
 
     try {
-      await _authService.resetPassword(token: token, newPassword: newPassword);
+      await service.resetPassword(token: token, newPassword: newPassword);
       if (!mounted) return;
       setState(() {
-        _isLoading = false;
-        _currentTab = 0; // Volta para login
+        _currentTab = 0; // volta para o login (todas as sessões foram encerradas)
         _showTokenFields = false;
         _recoveryFeedback = null;
+        _resetTokenController.clear();
+        _newPasswordController.clear();
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -192,15 +168,15 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Color(0xFFA1A32D),
         ),
       );
-    } catch (e) {
+    } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: const Color(0xFFC62828),
-        ),
-      );
+      _showError(_resetMessage(e));
+    } catch (e, st) {
+      debugPrint('Falha inesperada no reset-password: $e\n$st');
+      if (!mounted) return;
+      _showError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

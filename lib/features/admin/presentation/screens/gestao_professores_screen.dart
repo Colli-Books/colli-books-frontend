@@ -1,11 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/error_banner.dart';
+import '../../data/models/teacher_model.dart';
+import '../../data/services/admin_api_service.dart';
+import '../controllers/teachers_controller.dart';
 import '../widgets/card_professor.dart';
+import '../widgets/invite_details.dart';
 import 'convidar_professor_screen.dart';
 
+/// Opções do menu de filtro. Enum próprio: PopupMenuButton não chama
+/// onSelected para valores null, então `null` ("todos") não serve como valor.
+enum _Filter {
+  todos('Todos', null),
+  ativos('Ativos', TeacherStatus.active),
+  pendentes('Pendentes', TeacherStatus.invitePending),
+  inativos('Inativos', TeacherStatus.inactive);
+
+  const _Filter(this.label, this.status);
+  final String label;
+  final TeacherStatus? status;
+
+  static _Filter of(TeacherStatus? s) =>
+      _Filter.values.firstWhere((f) => f.status == s, orElse: () => _Filter.todos);
+}
+
 class GestaoProfessoresScreen extends StatefulWidget {
+  /// 'Todos' | 'Ativo' | 'Pendente' | 'Inativo' (rótulos usados pela home).
   final String? initialFilterStatus;
 
   const GestaoProfessoresScreen({super.key, this.initialFilterStatus});
@@ -15,191 +39,306 @@ class GestaoProfessoresScreen extends StatefulWidget {
 }
 
 class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
-  late String _filterStatus;
-  String _searchQuery = '';
+  late final AdminApiService _service;
+  late final TeachersController _controller;
+  final TextEditingController _searchController = TextEditingController();
+
+  int? _resendingId; // professor com reenvio de convite em andamento
+
+  static TeacherStatus? _statusFromLabel(String? label) => switch (label) {
+    'Ativo' => TeacherStatus.active,
+    'Pendente' => TeacherStatus.invitePending,
+    'Inativo' => TeacherStatus.inactive,
+    _ => null,
+  };
 
   @override
   void initState() {
     super.initState();
-    _filterStatus = widget.initialFilterStatus ?? 'Todos';
+    _service = context.read<AdminApiService>();
+    _controller = TeachersController(_service);
+    final initial = _statusFromLabel(widget.initialFilterStatus);
+    if (initial != null) _controller.setStatus(initial);
+    _controller.load();
   }
 
-  List<Map<String, dynamic>> professores = [
-    {
-      'nome': 'Ana Beatriz Silva',
-      'email': 'ana.beatriz@email.com',
-      'escola': 'Escola Estadual Machado de Assis',
-      'status': 'Ativo',
-      'data': 'Entrou em 12/03/2023',
-      'iniciais': 'AB',
-    },
-    {
-      'nome': 'carlos@email.com',
-      'email': 'carlos@email.com',
-      'escola': '',
-      'status': 'Pendente',
-      'data': 'Convite enviado em 12/03/2023',
-      'iniciais': 'C',
-    },
-    {
-      'nome': 'Marcos Nogueira',
-      'email': 'marcos.n@email.com',
-      'escola': 'Colégio Santa Maria',
-      'status': 'Ativo',
-      'data': 'Entrou em 10/02/2023',
-      'iniciais': 'MN',
-    },
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    final filteredProfessores = professores.where((p) {
-      final name = (p['nome'] as String? ?? '').toLowerCase();
-      final school = (p['escola'] as String? ?? '').toLowerCase();
-      final query = _searchQuery.toLowerCase();
-      final matchesSearch = name.contains(query) || school.contains(query);
-      final matchesStatus = _filterStatus == 'Todos' || p['status'] == _filterStatus;
-      return matchesSearch && matchesStatus;
-    }).toList();
+  void dispose() {
+    _controller.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.spacingLg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Gestão de Professores',
-            style: TextStyle(
-              color: AppColors.titleText,
-              fontSize: AppSizes.fontHeading,
-              fontWeight: FontWeight.w800,
-            ),
+  // --- Ações ----------------------------------------------------------------
+
+  Future<void> _convidar() async {
+    await Navigator.push<Object?>(
+      context,
+      MaterialPageRoute<Object?>(builder: (_) => const ConvidarProfessorScreen()),
+    );
+    // Recarrega com qualquer resultado: o botão voltar do sistema devolve null.
+    if (mounted) _controller.load();
+  }
+
+  Future<void> _reenviarConvite(TeacherModel teacher) async {
+    if (_resendingId != null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'Gerar novo convite',
+          style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Será gerado um novo convite para ${teacher.email}. '
+              'O convite anterior deixará de funcionar.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
-          const SizedBox(height: AppSizes.spacingSm),
-          const Text(
-            'Gerencie acessos e visualize os educadores cadastrados.',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: AppSizes.fontSmall,
-            ),
-          ),
-          const SizedBox(height: AppSizes.spacingLg),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (context) => const ConvidarProfessorScreen(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.person_add_alt_1_outlined, color: Colors.white),
-              label: const Text(
-                'Convidar Professor',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingMd),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSizes.spacingLg),
-          Container(
-            padding: const EdgeInsets.all(AppSizes.spacingMd),
-            decoration: BoxDecoration(
-              color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              children: [
-                TextField(
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                  decoration: InputDecoration(
-                    hintText: 'Buscar por nome ou escola...',
-                    prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-                      borderSide: const BorderSide(color: AppColors.border),
-                    ),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const SizedBox(height: AppSizes.spacingSm),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: PopupMenuButton<String>(
-                    onSelected: (String result) {
-                      setState(() {
-                        _filterStatus = result;
-                      });
-                    },
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(value: 'Todos', child: Text('Todos')),
-                      const PopupMenuItem<String>(value: 'Ativo', child: Text('Ativos')),
-                      const PopupMenuItem<String>(value: 'Pendente', child: Text('Pendentes')),
-                    ],
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.spacingMd,
-                        vertical: AppSizes.spacingSm,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.border),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.filter_list,
-                            color: AppColors.textPrimary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: AppSizes.spacingSm),
-                          Text(
-                            'Filtro: $_filterStatus',
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSizes.spacingLg),
-          Text(
-            '${filteredProfessores.length} professor(es) encontrado(s)',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: AppSizes.fontSmall,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: AppSizes.spacingMd),
-          ...filteredProfessores.map(
-            (prof) => CardProfessor(
-              prof: prof,
-              onDelete: () {
-                setState(() {
-                  professores.remove(prof);
-                });
-              },
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Gerar',
+              style: TextStyle(color: Color(0xFFA1A32D), fontWeight: FontWeight.bold),
             ),
           ),
         ],
       ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _resendingId = teacher.id);
+    try {
+      final invite = await _service.resendInvite(teacher.id);
+      if (!mounted) return;
+      await showInviteDialog(context, invite);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _showError(_resendMessage(e));
+      // Lista desatualizada (o professor já ativou a conta, ou foi removido): sincroniza.
+      if (e.code == 'ACCOUNT_ALREADY_ACTIVE' || e.code == 'NOT_FOUND') {
+        _controller.load();
+      }
+    } catch (e, st) {
+      debugPrint('Falha inesperada ao reenviar convite: $e\n$st');
+      if (!mounted) return;
+      _showError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _resendingId = null);
+    }
+  }
+
+  String _resendMessage(ApiException e) => switch (e.code) {
+    'ACCOUNT_ALREADY_ACTIVE' => 'Este professor já ativou a conta. Atualizando a lista.',
+    'NOT_FOUND' => 'Professor não encontrado. Atualizando a lista.',
+    'FORBIDDEN' => 'Você não tem permissão para esta ação.',
+    'RATE_LIMITED' => 'Muitas tentativas. Aguarde um instante e tente de novo.',
+    _ when e.isNetworkError =>
+    '${e.message} Tentar de novo é seguro, mas invalida qualquer convite gerado antes.',
+    _ => e.message,
+  };
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFFC62828),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
+  // --- UI -------------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: _controller.load,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppSizes.spacingLg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Gestão de Professores',
+              style: TextStyle(
+                color: AppColors.titleText,
+                fontSize: AppSizes.fontHeading,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: AppSizes.spacingSm),
+            const Text(
+              'Gerencie acessos e visualize os educadores cadastrados.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: AppSizes.fontSmall),
+            ),
+            const SizedBox(height: AppSizes.spacingLg),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _convidar,
+                icon: const Icon(Icons.person_add_alt_1_outlined, color: Colors.white),
+                label: const Text(
+                  'Convidar Professor',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingMd),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.spacingLg),
+            Container(
+              padding: const EdgeInsets.all(AppSizes.spacingMd),
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  // Fora de qualquer ListenableBuilder: digitar não reconstrói o campo.
+                  TextField(
+                    controller: _searchController,
+                    onChanged: _controller.setQuery, // debounce de 400 ms no controller
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por nome ou e-mail...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.spacingSm),
+                  _buildFilter(),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSizes.spacingLg),
+            ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) => _buildResults(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilter() {
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        final current = _Filter.of(_controller.status);
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: PopupMenuButton<_Filter>(
+            onSelected: (f) => _controller.setStatus(f.status),
+            itemBuilder: (context) => [
+              for (final f in _Filter.values)
+                PopupMenuItem<_Filter>(
+                  value: f,
+                  child: Text('${f.label} (${_controller.countOf(f.status)})'),
+                ),
+            ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.spacingMd,
+                vertical: AppSizes.spacingSm,
+              ),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.filter_list, color: AppColors.textPrimary, size: 20),
+                  const SizedBox(width: AppSizes.spacingSm),
+                  Text(
+                    'Filtro: ${current.label}',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildResults() {
+    final error = _controller.error;
+    if (error != null) {
+      return ErrorBanner(message: error.message, onRetry: _controller.load);
+    }
+
+    final items = _controller.items;
+    if (_controller.isLoading && items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Lista vazia sem erro é um estado vazio, não uma falha.
+    if (_controller.isEmpty) {
+      final filtered =
+          _controller.status != null || _searchController.text.trim().isNotEmpty;
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Text(
+            filtered
+                ? 'Nenhum professor encontrado com esses filtros.'
+                : 'Nenhum professor cadastrado ainda.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: AppSizes.fontSmall,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_controller.isLoading) const LinearProgressIndicator(minHeight: 2), // atualizando
+        const SizedBox(height: AppSizes.spacingSm),
+        Text(
+          '${items.length} professor(es) encontrado(s)',
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: AppSizes.fontSmall,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppSizes.spacingMd),
+        for (final teacher in items)
+          CardProfessor(
+            key: ValueKey(teacher.id),
+            teacher: teacher,
+            resending: _resendingId == teacher.id,
+            onResendInvite: () => _reenviarConvite(teacher),
+          ),
+      ],
     );
   }
 }
