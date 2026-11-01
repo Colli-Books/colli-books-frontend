@@ -6,6 +6,7 @@ import '../../../../core/utils/validators.dart';
 import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
 import '../../data/services/auth_api_service.dart';
 import '../controllers/auth_controller.dart';
+import '../../../invites/presentation/screens/invite_code_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -469,6 +470,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     elevation: 0,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Center(
+                                child: TextButton(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute<void>(builder: (_) => const InviteCodeScreen()),
+                                  ),
+                                  child: const Text(
+                                    'Tenho um convite',
+                                    style: TextStyle(color: linkColor, fontWeight: FontWeight.w700),
                                   ),
                                 ),
                               ),

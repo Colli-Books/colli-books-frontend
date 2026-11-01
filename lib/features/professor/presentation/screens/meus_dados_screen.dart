@@ -243,6 +243,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                         enabled: !_isLoading,
                         inputFormatters: [LengthLimitingTextInputFormatter(255)],
                         textCapitalization: TextCapitalization.words,
+                        forceErrorText: _serverErrors['full_name'],
                         onChanged: (_) {
                           if (_serverErrors.containsKey('full_name')) {
                             setState(() => _serverErrors.remove('full_name'));
@@ -256,7 +257,6 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                         decoration: _buildInputDecoration(
                           hintText: 'Seu nome completo',
                           prefixIcon: Icons.person_outline_rounded,
-                          errorText: _serverErrors['full_name'],
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -321,6 +321,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                       TextFormField(
                         controller: _escolaController,
                         enabled: !_isLoading,
+                        forceErrorText: _serverErrors['school'],
                         inputFormatters: [LengthLimitingTextInputFormatter(255)],
                         onChanged: (_) {
                           if (_serverErrors.containsKey('school')) {
@@ -335,7 +336,6 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                         decoration: _buildInputDecoration(
                           hintText: 'Nome da sua escola ou instituição (opcional)',
                           prefixIcon: Icons.school_outlined,
-                          errorText: _serverErrors['school'],
                         ),
                       ),
                       const SizedBox(height: 28),
@@ -423,11 +423,9 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
     required IconData prefixIcon,
     Color fillColor = Colors.white,
     Widget? suffixIcon,
-    String? errorText,
   }) {
     return InputDecoration(
       hintText: hintText,
-      errorText: errorText,
       hintStyle: const TextStyle(color: Color(0xFFA3988F), fontSize: 14),
       prefixIcon: Icon(prefixIcon, color: const Color(0xFF8D6E63), size: 20),
       suffixIcon: suffixIcon,

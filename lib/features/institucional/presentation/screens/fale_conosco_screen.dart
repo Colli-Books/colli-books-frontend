@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/utils/external_links.dart';
 
 class FaleConoscoScreen extends StatelessWidget {
   const FaleConoscoScreen({super.key});
@@ -17,22 +17,6 @@ class FaleConoscoScreen extends StatelessWidget {
 
   static const String _linkedInUrl =
       'https://www.linkedin.com/in/colli-books-editora-1090071a7/';
-
-  Future<void> _abrirLink(BuildContext context, String urlStr) async {
-    try {
-      final ok = await launchUrl(Uri.parse(urlStr), mode: LaunchMode.externalApplication);
-      if (ok) return;
-    } catch (e) {
-      debugPrint('Falha ao abrir $urlStr: $e');
-    }
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Não foi possível abrir o link neste aparelho.'),
-        duration: Duration(seconds: 3),
-      ),
-    );
-  }
 
   void _copiarParaClipboard(BuildContext context, String texto, String tipo) {
     Clipboard.setData(ClipboardData(text: texto));
@@ -106,7 +90,7 @@ class FaleConoscoScreen extends StatelessWidget {
                 iconColor: const Color(0xFF25D366),
                 iconBgColor: const Color(0xFFE8F5E9),
                 trailingIcon: Icons.open_in_new_rounded,
-                onTap: () => _abrirLink('https://wa.me/5561982127673'),
+                onTap: () => openExternalLink(context,'https://wa.me/5561982127673'),
               ),
               const SizedBox(height: 12),
 
@@ -145,7 +129,7 @@ class FaleConoscoScreen extends StatelessWidget {
                 iconColor: const Color(0xFFD32F2F),
                 iconBgColor: const Color(0xFFFFEBEE),
                 trailingIcon: Icons.directions_outlined,
-                onTap: () => _abrirLink(_mapsUrl),
+                onTap: () => openExternalLink(context,_mapsUrl),
               ),
 
               const SizedBox(height: 28),
@@ -170,28 +154,28 @@ class FaleConoscoScreen extends StatelessWidget {
                     icon: FontAwesomeIcons.instagram,
                     label: 'Instagram',
                     brandColor: const Color(0xFFE1306C),
-                    onTap: () => _abrirLink('https://www.instagram.com/collibooks/'),
+                    onTap: () => openExternalLink(context,'https://www.instagram.com/collibooks/'),
                   ),
                   const SizedBox(width: 8),
                   _buildSocialCard(
                     icon: FontAwesomeIcons.facebook,
                     label: 'Facebook',
                     brandColor: const Color(0xFF1877F2),
-                    onTap: () => _abrirLink('https://www.facebook.com/collibooks/'),
+                    onTap: () => openExternalLink(context,'https://www.facebook.com/collibooks/'),
                   ),
                   const SizedBox(width: 8),
                   _buildSocialCard(
                     icon: FontAwesomeIcons.youtube,
                     label: 'YouTube',
                     brandColor: const Color(0xFFCD201F),
-                    onTap: () => _abrirLink('https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
+                    onTap: () => openExternalLink(context,'https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
                   ),
                   const SizedBox(width: 8),
                   _buildSocialCard(
                     icon: FontAwesomeIcons.linkedin,
                     label: 'LinkedIn',
                     brandColor: const Color(0xFF0077B5),
-                    onTap: () => _abrirLink(_linkedInUrl),
+                    onTap: () => openExternalLink(context,_linkedInUrl),
                   ),
                 ],
               ),

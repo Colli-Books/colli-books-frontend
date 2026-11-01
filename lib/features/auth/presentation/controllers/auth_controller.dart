@@ -80,4 +80,11 @@ class AuthController extends ChangeNotifier {
     _user = user;
     notifyListeners();
   }
+
+  /// Adota uma sessão iniciada fora do login (ex.: aceite de convite).
+  void adoptSession(UserModel user) {
+    _user = user;
+    _status = AuthStatus.authenticated;
+    notifyListeners();
+  }
 }

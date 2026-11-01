@@ -14,6 +14,8 @@ import 'features/admin/data/services/admin_api_service.dart';
 import 'features/catalogo/data/services/catalog_api_service.dart';
 import 'features/catalogo/presentation/controllers/saved_books_controller.dart';
 import 'features/professor/data/services/profile_api_service.dart';
+import 'features/invites/data/services/invites_api_service.dart';
+import 'features/invites/presentation/invite_link_handler.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 void main() {
@@ -28,6 +30,7 @@ void main() {
   final catalogService = CatalogApiService(api);
   final savedBooks = SavedBooksController(catalogService);
   final profileService = ProfileApiService(api);
+  final invitesService = InvitesApiService(api, session);
 
   // Sessão encerrada em qualquer ponto: desempilha telas até a raiz (AuthGate).
   auth.addListener(() {
@@ -36,6 +39,7 @@ void main() {
       navigatorKey.currentState?.popUntil((r) => r.isFirst);
     }
   });
+  InviteLinkHandler(navigatorKey: navigatorKey, auth: auth).start();
 
   runApp(MultiProvider(
     providers: [
@@ -46,6 +50,7 @@ void main() {
       ChangeNotifierProvider<AuthController>.value(value: auth),
       Provider<ProfileApiService>.value(value: profileService),
       ChangeNotifierProvider<SavedBooksController>.value(value: savedBooks),
+      Provider<InvitesApiService>.value(value: invitesService),
     ],
     child: const ColliBooksApp(),
   ));
@@ -71,6 +76,7 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
+
     return switch (auth.status) {
       AuthStatus.unknown => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
