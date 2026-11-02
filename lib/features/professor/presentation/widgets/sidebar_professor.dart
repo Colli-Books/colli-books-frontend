@@ -1,232 +1,132 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/theme/colors.dart';
-import '../../../../core/theme/sizes.dart';
+import '../../../../core/utils/external_links.dart';
+import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
 import '../../../institucional/presentation/screens/sobre_nos_screen.dart';
 import '../../../institucional/presentation/screens/termos_uso_screen.dart';
-import '../../../institucional/presentation/screens/politica_privacidade_screen.dart';
+
+const _primaryText = Color(0xFF331212);
 
 class SidebarProfessor extends StatelessWidget {
-  final ValueChanged<int> onSelectTab;
-
-  const SidebarProfessor({super.key, required this.onSelectTab});
-
-  Future<void> _abrirLink(String urlStr) async {
-    final Uri url = Uri.parse(urlStr);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint('Não foi possível abrir o link: $urlStr');
-    }
-  }
+  const SidebarProfessor({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: AppColors.surface,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- ITENS DE NAVEGAÇÃO PRINCIPAL ---
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSizes.spacingMd,
+      backgroundColor: const Color(0xFFF9F5EC),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 60),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _item(Icons.library_books_outlined, 'Editora',
+                    isLink: true, onTap: () => openExternalLink(context, 'https://www.collibooks.com/editora/')),
+                _item(Icons.flag_outlined, 'PNLD',
+                    isLink: true, onTap: () => openExternalLink(context, 'https://www.collibooks.com/pnld-2/')),
+                _item(Icons.edit_note_outlined, 'Blog',
+                    isLink: true, onTap: () => openExternalLink(context, 'https://www.collibooks.com/category/blog/')),
+                _item(Icons.star_outline, 'Anima Kids',
+                    isLink: true, onTap: () => openExternalLink(context, 'https://www.collibooks.com/anima-kids/')),
+                _item(Icons.info_outline, 'Sobre Nós', onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(builder: (_) => const SobreNosScreen()),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const Divider(color: Color(0xFFEBE8E0), thickness: 1),
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(builder: (_) => const TermosUsoScreen()),
+                  ),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, alignment: Alignment.centerLeft),
+                  child: const Text('Termos de Uso',
+                      style: TextStyle(color: _primaryText, fontWeight: FontWeight.w600)),
                 ),
-                children: [
-                  _buildItem(
-                    icon: const Icon(Icons.library_books_outlined),
-                    label: 'Editora',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _abrirLink('https://www.collibooks.com/editora/');
-                    },
+                TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(builder: (_) => const PoliticaPrivacidadeScreen()),
                   ),
-                  _buildItem(
-                    icon: const Icon(Icons.flag_outlined),
-                    label: 'PNLD',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _abrirLink('https://www.collibooks.com/pnld-2/');
-                    },
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, alignment: Alignment.centerLeft),
+                  child: const Text('Política de Privacidade',
+                      style: TextStyle(color: _primaryText, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'SIGA-NOS',
+                  style: TextStyle(
+                    color: Color(0xFF8D6E63),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
                   ),
-                  _buildItem(
-                    icon: const Icon(Icons.edit_note_outlined),
-                    label: 'Blog',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _abrirLink('https://www.collibooks.com/category/blog/');
-                    },
-                  ),
-                  _buildItem(
-                    icon: const Icon(Icons.star_outline),
-                    label: 'Anima Kids',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _abrirLink('https://www.collibooks.com/anima-kids/');
-                    },
-                  ),
-                  _buildItem(
-                    icon: const Icon(Icons.info_outline),
-                    label: 'Sobre Nós',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => const SobreNosScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 8),
+                _social(context, FontAwesomeIcons.instagram, 'Instagram', const Color(0xFFE1306C),
+                    'https://www.instagram.com/collibooks/'),
+                _social(context, FontAwesomeIcons.youtube, 'YouTube', const Color(0xFFCD201F),
+                    'https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
+                _social(context, FontAwesomeIcons.facebook, 'Facebook', const Color(0xFF1877F2),
+                    'https://www.facebook.com/collibooks/'),
+                _social(context, FontAwesomeIcons.linkedin, 'LinkedIn', const Color(0xFF0077B5),
+                    'https://www.linkedin.com/in/colli-books-editora-1090071a7/'),
+              ],
             ),
-
-            const Divider(color: AppColors.divider, height: 1),
-
-            // --- RODAPÉ: TERMOS, PRIVACIDADE E REDES SOCIAIS ---
-            Padding(
-              padding: const EdgeInsets.all(AppSizes.spacingLg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLink('Termos de Uso', () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => const TermosUsoScreen(),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: AppSizes.spacingSm),
-                  _buildLink('Política de Privacidade', () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => const PoliticaPrivacidadeScreen(),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: AppSizes.spacingLg),
-                  const Text(
-                    'SIGA-NOS',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.spacingSm),
-                  _buildSocialItem(
-                    icon: FontAwesomeIcons.instagram,
-                    name: 'Instagram',
-                    brandColor: const Color(0xFFE1306C),
-                    onTap: () => _abrirLink('https://www.instagram.com/collibooks/'),
-                  ),
-                  _buildSocialItem(
-                    icon: FontAwesomeIcons.youtube,
-                    name: 'YouTube',
-                    brandColor: const Color(0xFFCD201F),
-                    onTap: () => _abrirLink('https://www.youtube.com/channel/UCFZuip1s5lKOJ_RuZwmpG9g'),
-                  ),
-                  _buildSocialItem(
-                    icon: FontAwesomeIcons.facebook,
-                    name: 'Facebook',
-                    brandColor: const Color(0xFF1877F2),
-                    onTap: () => _abrirLink('https://www.facebook.com/collibooks/'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildItem({
-    required Widget icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _item(IconData icon, String title, {bool isLink = false, VoidCallback? onTap}) {
     return ListTile(
-      leading: IconTheme(
-        data: const IconThemeData(color: AppColors.textPrimary, size: 22),
-        child: icon,
-      ),
+      leading: Icon(icon, color: _primaryText),
       title: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: AppSizes.fontBody,
+        title,
+        style: TextStyle(
+          color: _primaryText,
           fontWeight: FontWeight.w600,
+          decoration: isLink ? TextDecoration.underline : null,
         ),
-      ),
-      horizontalTitleGap: AppSizes.spacingSm,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.spacingLg,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
       ),
       onTap: onTap,
     );
   }
 
-  Widget _buildLink(String texto, VoidCallback onTap) {
+  Widget _social(BuildContext context, FaIconData icon, String name, Color color, String url) {
     return InkWell(
-      onTap: onTap,
-      child: Text(
-        texto,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: AppSizes.fontSmall,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialItem({
-    required FaIconData icon,
-    required String name,
-    required Color brandColor,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+      onTap: () => openExternalLink(context, url),
+      borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 9.0, horizontal: 4.0),
         child: Row(
           children: [
-            SizedBox(
-              width: 24,
-              child: Center(
-                child: FaIcon(icon, color: brandColor, size: 20),
-              ),
-            ),
+            SizedBox(width: 24, child: Center(child: FaIcon(icon, color: color, size: 20))),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 name,
                 style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: AppSizes.fontBody,
+                  color: Color(0xFF4A2525),
                   fontWeight: FontWeight.w600,
+                  fontSize: 15,
                 ),
               ),
             ),
-            Icon(
-              Icons.open_in_new_rounded,
-              size: 15,
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
-            ),
+            const Icon(Icons.open_in_new_rounded, size: 15, color: Color(0xFF8D6E63)),
           ],
         ),
       ),

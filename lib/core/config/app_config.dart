@@ -21,4 +21,5 @@ class AppConfig {
 
   /// Timeout padrão para requisições de leitura/escrita
   static const Duration requestTimeout = Duration(seconds: 10);
+  static const uploadTimeout = Duration(seconds: 30);
 }

@@ -1,65 +1,90 @@
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 
-class PerfilAdminScreen extends StatefulWidget{
+class PerfilAdminScreen extends StatefulWidget {
   const PerfilAdminScreen({super.key});
 
   @override
   State<PerfilAdminScreen> createState() => _PerfilAdminScreenState();
 }
 
-class _PerfilAdminScreenState extends State<PerfilAdminScreen>{
+class _PerfilAdminScreenState extends State<PerfilAdminScreen> {
+  bool _loggingOut = false;
+
   @override
-  Widget build(BuildContext buildContext) {
+  Widget build(BuildContext context) {
+    // Dados do usuário logado, vindos do login / GET /auth/me.
+    final user = context.watch<AuthController>().user;
+
+    final fullName = user?.fullName?.trim() ?? '';
+    final name = fullName.isNotEmpty ? fullName : (user?.email ?? '');
+    final showEmail = user != null && name != user.email;
+    final school = user?.school?.trim() ?? '';
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'Admin Colli',
+            name,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: AppSizes.fontHeading,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Administrador Master',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: AppSizes.fontTitle,
-              fontWeight: FontWeight.w500,
+          if (showEmail) ...[
+            const SizedBox(height: 8),
+            Text(
+              user.email,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: AppSizes.fontTitle,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'MATRIZ COLLI BOOKS',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: AppSizes.fontSmall,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.0,
+          ],
+          if (school.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              school.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: AppSizes.fontSmall,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.0,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: AppSizes.spacingXXl),
           OutlinedButton.icon(
-            onPressed: () => _confirmarLogout(context),
-            icon: const Icon(Icons.exit_to_app, color: AppColors.danger),
-            label: const Text(
-              'Sair da Conta',
-              style: TextStyle(
+            onPressed: _loggingOut ? null : _confirmarLogout,
+            icon: _loggingOut
+                ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.danger),
+            )
+                : const Icon(Icons.exit_to_app, color: AppColors.danger),
+            label: Text(
+              _loggingOut ? 'Saindo...' : 'Sair da Conta',
+              style: const TextStyle(
                 color: AppColors.danger,
                 fontWeight: FontWeight.bold,
               ),
             ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.danger),
-              padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingXl, vertical: AppSizes.spacingXMd),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.spacingXl,
+                vertical: AppSizes.spacingXMd,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSizes.radiusXl),
               ),
@@ -70,8 +95,8 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen>{
     );
   }
 
-  void _confirmarLogout(BuildContext context) {
-    showDialog<void>(
+  Future<void> _confirmarLogout() async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFFF9F5EC),
@@ -80,7 +105,10 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen>{
           children: [
             Icon(Icons.logout_rounded, color: Color(0xFFE56B6F)),
             SizedBox(width: 10),
-            Text('Encerrar Sessão', style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(
+              'Encerrar Sessão',
+              style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18),
+            ),
           ],
         ),
         content: const Text(
@@ -89,17 +117,14 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen>{
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF8C7A70), fontWeight: FontWeight.bold)),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Color(0xFF8C7A70), fontWeight: FontWeight.bold),
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
-              );
-            },
+            onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE56B6F),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -109,5 +134,31 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen>{
         ],
       ),
     );
+    if (confirmed != true || !mounted) return;
+    await _logout();
+  }
+
+  Future<void> _logout() async {
+    // Pega o controller antes do await: assim que a sessão cai, o AuthGate
+    // descarta esta tela e o context deixa de ser seguro.
+    final auth = context.read<AuthController>();
+    setState(() => _loggingOut = true);
+    try {
+      // Revoga o refresh token no servidor e limpa o armazenamento local, mesmo
+      // offline. O AuthGate troca para o login; nada de Navigator aqui.
+      await auth.logout();
+    } catch (e, st) {
+      debugPrint('Falha inesperada no logout: $e\n$st');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível encerrar a sessão. Tente novamente.'),
+          backgroundColor: Color(0xFFC62828),
+        ),
+      );
+    } finally {
+      // Em caso de sucesso, a tela já foi descartada (mounted == false).
+      if (mounted) setState(() => _loggingOut = false);
+    }
   }
 }
