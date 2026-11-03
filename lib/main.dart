@@ -4,68 +4,115 @@ import 'package:provider/provider.dart';
 import 'core/network/api_client.dart';
 import 'core/session/session_manager.dart';
 import 'core/session/token_storage.dart';
+import 'features/admin/data/services/admin_api_service.dart';
 import 'features/admin/presentation/screens/admin_home_screen.dart';
 import 'features/auth/data/models/user_model.dart';
 import 'features/auth/data/services/auth_api_service.dart';
 import 'features/auth/presentation/controllers/auth_controller.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
-import 'features/professor/presentation/screens/professor_home_screen.dart';
-import 'features/admin/data/services/admin_api_service.dart';
 import 'features/catalogo/data/services/catalog_api_service.dart';
 import 'features/catalogo/presentation/controllers/saved_books_controller.dart';
-import 'features/professor/data/services/profile_api_service.dart';
 import 'features/invites/data/services/invites_api_service.dart';
 import 'features/invites/presentation/invite_link_handler.dart';
+import 'features/professor/data/services/profile_api_service.dart';
+import 'features/professor/presentation/screens/professor_home_screen.dart';
 
-final navigatorKey = GlobalKey<NavigatorState>();
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // UMA instância de ApiClient para o app inteiro: o access token vive nela.
-  final api = ApiClient();
-  final session = SessionManager(api, TokenStorage());
-  final authService = AuthApiService(api, session);
-  final auth = AuthController(authService, session)..restoreSession();
-  final adminService = AdminApiService(api);
-  final catalogService = CatalogApiService(api);
-  final savedBooks = SavedBooksController(catalogService);
-  final profileService = ProfileApiService(api);
-  final invitesService = InvitesApiService(api, session);
-
-  // Sessão encerrada em qualquer ponto: desempilha telas até a raiz (AuthGate).
-  auth.addListener(() {
-    if (auth.status == AuthStatus.unauthenticated) {
-      savedBooks.clear();
-      navigatorKey.currentState?.popUntil((r) => r.isFirst);
-    }
-  });
-  InviteLinkHandler(navigatorKey: navigatorKey, auth: auth).start();
-
-  runApp(MultiProvider(
-    providers: [
-      Provider<ApiClient>.value(value: api),
-      Provider<AuthApiService>.value(value: authService),
-      Provider<AdminApiService>.value(value: adminService),
-      Provider<CatalogApiService>.value(value: catalogService),
-      ChangeNotifierProvider<AuthController>.value(value: auth),
-      Provider<ProfileApiService>.value(value: profileService),
-      ChangeNotifierProvider<SavedBooksController>.value(value: savedBooks),
-      Provider<InvitesApiService>.value(value: invitesService),
-    ],
-    child: const ColliBooksApp(),
-  ));
+  runApp(const ColliBooksRoot());
 }
 
-class ColliBooksApp extends StatelessWidget {
-  const ColliBooksApp({super.key});
+/// Raiz do app. Toda a composição (serviços, controllers, deep link) vive no State:
+/// - os testes E2E sobem uma instância nova a cada teste (`pumpWidget(const ColliBooksRoot())`);
+/// - nada fica em variável global, então nada vaza de um teste (ou de um login) para o próximo;
+/// - `dispose` cancela o deep link e os controllers.
+class ColliBooksRoot extends StatefulWidget {
+  const ColliBooksRoot({super.key, this.enableDeepLinks = true});
+
+  /// Os testes desligam quando não precisam (cada assinatura do app_links é um listener a mais).
+  final bool enableDeepLinks;
+
+  @override
+  State<ColliBooksRoot> createState() => _ColliBooksRootState();
+}
+
+class _ColliBooksRootState extends State<ColliBooksRoot> {
+  // Por instância (e não global): uma GlobalKey reaproveitada entre instâncias
+  // poderia reaproveitar o Navigator (e as rotas) da instância anterior.
+  final _navigatorKey = GlobalKey<NavigatorState>();
+
+  late final ApiClient _api;
+  late final AuthApiService _authService;
+  late final AdminApiService _adminService;
+  late final CatalogApiService _catalogService;
+  late final ProfileApiService _profileService;
+  late final InvitesApiService _invitesService;
+  late final AuthController _auth;
+  late final SavedBooksController _savedBooks;
+  InviteLinkHandler? _links;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // UMA instância de ApiClient por app: o access token vive nela.
+    _api = ApiClient();
+    final session = SessionManager(_api, TokenStorage());
+
+    _authService = AuthApiService(_api, session);
+    _adminService = AdminApiService(_api);
+    _catalogService = CatalogApiService(_api);
+    _profileService = ProfileApiService(_api);
+    _invitesService = InvitesApiService(_api, session);
+
+    _savedBooks = SavedBooksController(_catalogService);
+    _auth = AuthController(_authService, session)..restoreSession();
+    _auth.addListener(_onAuthChanged);
+
+    if (widget.enableDeepLinks) {
+      _links = InviteLinkHandler(navigatorKey: _navigatorKey, auth: _auth)..start();
+    }
+  }
+
+  /// Sessão encerrada em qualquer ponto: limpa a seleção e desempilha até a raiz (AuthGate).
+  void _onAuthChanged() {
+    if (_auth.status == AuthStatus.unauthenticated) {
+      _savedBooks.clear();
+      _navigatorKey.currentState?.popUntil((r) => r.isFirst);
+    }
+  }
+
+  @override
+  void dispose() {
+    _links?.dispose();
+    _auth.removeListener(_onAuthChanged);
+    _auth.dispose();
+    _savedBooks.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      title: 'Colli Books',
-      // theme: ...  (o seu atual)
-      home: const AuthGate(),
+    return MultiProvider(
+      providers: [
+        Provider<ApiClient>.value(value: _api),
+        Provider<AuthApiService>.value(value: _authService),
+        Provider<AdminApiService>.value(value: _adminService),
+        Provider<CatalogApiService>.value(value: _catalogService),
+        Provider<ProfileApiService>.value(value: _profileService),
+        Provider<InvitesApiService>.value(value: _invitesService),
+        ChangeNotifierProvider<AuthController>.value(value: _auth),
+        ChangeNotifierProvider<SavedBooksController>.value(value: _savedBooks),
+      ],
+      child: MaterialApp(
+        navigatorKey: _navigatorKey,
+        title: 'Colli Books',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF9F9F22)),
+          useMaterial3: true,
+        ),
+        home: const AuthGate(),
+      ),
     );
   }
 }
@@ -76,7 +123,6 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
-
     return switch (auth.status) {
       AuthStatus.unknown => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
