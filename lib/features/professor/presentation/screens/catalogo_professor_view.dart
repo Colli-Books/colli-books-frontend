@@ -79,6 +79,7 @@ class _CatalogoProfessorViewState extends State<CatalogoProfessorView> {
           children: [
             // Fora do ListenableBuilder: digitar não reconstrói o campo.
             TextField(
+              key: const ValueKey('catalog_search'),
               onChanged: _books.setQuery, // debounce de 400 ms no controller
               decoration: InputDecoration(
                 hintText: 'Buscar por título ou autor...',
@@ -135,19 +136,20 @@ class _CatalogoProfessorViewState extends State<CatalogoProfessorView> {
       children: [
         Expanded(
           child: _filterButton(levelName ?? 'Escolaridades', levelName != null,
-              ready ? _filtrarEscolaridade : null),
+              ready ? _filtrarEscolaridade : null, key: const ValueKey('catalog_filter_level')),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _filterButton(themeName ?? 'Temas', themeName != null,
-              ready ? _filtrarTema : null),
+              ready ? _filtrarTema : null, key: const ValueKey('catalog_filter_theme')),
         ),
       ],
     );
   }
 
-  Widget _filterButton(String label, bool active, VoidCallback? onPressed) {
+  Widget _filterButton(String label, bool active, VoidCallback? onPressed, {Key? key}) {
     return OutlinedButton.icon(
+      key: key,
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

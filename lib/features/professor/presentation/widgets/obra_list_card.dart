@@ -62,6 +62,7 @@ class _ObraListCardState extends State<ObraListCard> {
     final coverUrl = book.coverUri;
 
     return GestureDetector(
+      key: ValueKey('book_card_${book.id}'),
       onTap: widget.onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -105,6 +106,7 @@ class _ObraListCardState extends State<ObraListCard> {
                           child: Tooltip(
                             message: isSaved ? 'Remover da Seleção' : 'Salvar na Seleção',
                             child: InkWell(
+                              key: ValueKey('book_save_${book.id}'),
                               onTap: pending ? null : _toggleSaved,
                               child: Padding(
                                 padding: const EdgeInsets.all(4.0),

@@ -208,6 +208,7 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
                 children: [
                   // Fora de qualquer ListenableBuilder: digitar não reconstrói o campo.
                   TextField(
+                    key: const ValueKey('teachers_search'),
                     controller: _searchController,
                     onChanged: _controller.setQuery, // debounce de 400 ms no controller
                     decoration: InputDecoration(

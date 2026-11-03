@@ -53,3 +53,4 @@ datasets/
 *Contrato*
 test_bundle.dart
 test-results
+playwright-report

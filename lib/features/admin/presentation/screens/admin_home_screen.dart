@@ -171,6 +171,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
                 // SUMMARY CARDS
                 SummaryCard(
+                  key: const ValueKey('summary_books'),
                   iconContainer: const SummaryCardIcon(
                     icon: Icons.menu_book_outlined,
                     iconBgColor: AppColors.surface,
@@ -182,6 +183,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 SummaryCard(
+                  key: const ValueKey('summary_teachers'),
                   iconContainer: const SummaryCardIcon(
                     icon: Icons.people_alt_outlined,
                     iconBgColor: AppColors.surface,
@@ -194,6 +196,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 SummaryCard(
+                  key: const ValueKey('summary_invites'),
                   iconContainer: const SummaryCardIcon(
                     icon: Icons.mail_outline,
                     iconBgColor: AppColors.surface,

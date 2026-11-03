@@ -15,10 +15,12 @@ class CadastrarEscolaridadeScreen extends StatefulWidget {
   const CadastrarEscolaridadeScreen({super.key});
 
   @override
-  State<CadastrarEscolaridadeScreen> createState() => _CadastrarEscolaridadeScreenState();
+  State<CadastrarEscolaridadeScreen> createState() =>
+      _CadastrarEscolaridadeScreenState();
 }
 
-class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScreen> {
+class _CadastrarEscolaridadeScreenState
+    extends State<CadastrarEscolaridadeScreen> {
   final TextEditingController _controller = TextEditingController();
   late final CatalogApiService _service;
 
@@ -50,7 +52,8 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
       });
     }
     try {
-      final list = await _service.listEducationLevels(); // já vem na ordem pedagógica
+      final list = await _service
+          .listEducationLevels(); // já vem na ordem pedagógica
       if (!mounted) return;
       setState(() {
         _levels = list;
@@ -131,7 +134,7 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
     'FORBIDDEN' => 'Você não tem permissão para esta ação.',
     'NOT_FOUND' => 'Esta escolaridade não existe mais. Atualizando a lista.',
     _ when e.isNetworkError =>
-    '${e.message} Se estava cadastrando, confira a lista antes de tentar de novo.',
+      '${e.message} Se estava cadastrando, confira a lista antes de tentar de novo.',
     _ => e.message,
   };
 
@@ -159,8 +162,15 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
         leadingWidth: 100,
         leading: TextButton.icon(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: _primaryTextColor, size: 20),
-          label: const Text('Voltar', style: TextStyle(color: _primaryTextColor, fontSize: 16)),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: _primaryTextColor,
+            size: 20,
+          ),
+          label: const Text(
+            'Voltar',
+            style: TextStyle(color: _primaryTextColor, fontSize: 16),
+          ),
         ),
       ),
       body: RefreshIndicator(
@@ -173,7 +183,11 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
             children: [
               const Text(
                 'Cadastrar Escolaridade',
-                style: TextStyle(color: _primaryTextColor, fontSize: 24, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  color: _primaryTextColor,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -190,10 +204,15 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
                   children: [
                     const Text(
                       'Escolaridade',
-                      style: TextStyle(color: _primaryTextColor, fontSize: 14, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        color: _primaryTextColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
+                      key: const ValueKey('level_name_input'),
                       controller: _controller,
                       maxLength: 120,
                       textInputAction: TextInputAction.done,
@@ -203,14 +222,21 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
                         counterText: '',
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFD6D6D6)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD6D6D6),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFD6D6D6)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD6D6D6),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -224,22 +250,36 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
+                        key: const ValueKey('level_submit'),
                         onPressed: _saving ? null : _cadastrar,
                         icon: _saving
                             ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                            : const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.add_circle_outline,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                         label: Text(
                           _saving ? 'Salvando...' : 'Cadastrar Escolaridade',
-                          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _buttonGreen,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           elevation: 0,
                         ),
                       ),
@@ -250,7 +290,11 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
               const SizedBox(height: 32),
               const Text(
                 'Escolaridades Cadastradas',
-                style: TextStyle(color: _primaryTextColor, fontSize: 18, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  color: _primaryTextColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -276,7 +320,10 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
@@ -288,12 +335,19 @@ class _CadastrarEscolaridadeScreenState extends State<CadastrarEscolaridadeScree
                       Expanded(
                         child: Text(
                           level.name,
-                          style: const TextStyle(color: _primaryTextColor, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            color: _primaryTextColor,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       IconButton(
+                        key: ValueKey('level_edit_${level.id}'),
                         tooltip: 'Renomear',
-                        icon: const Icon(Icons.edit_outlined, color: _primaryTextColor),
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          color: _primaryTextColor,
+                        ),
                         onPressed: _saving ? null : () => _renomear(level),
                       ),
                     ],
@@ -331,7 +385,11 @@ class _LoadError extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: Color(0xFF7F1D1D), fontSize: 13, height: 1.3),
+              style: const TextStyle(
+                color: Color(0xFF7F1D1D),
+                fontSize: 13,
+                height: 1.3,
+              ),
             ),
           ),
           TextButton(onPressed: onRetry, child: const Text('Tentar de novo')),
@@ -352,7 +410,9 @@ class _RenameDialog extends StatefulWidget {
 }
 
 class _RenameDialogState extends State<_RenameDialog> {
-  late final TextEditingController _ctrl = TextEditingController(text: widget.initialName);
+  late final TextEditingController _ctrl = TextEditingController(
+    text: widget.initialName,
+  );
 
   @override
   void dispose() {
@@ -371,6 +431,7 @@ class _RenameDialogState extends State<_RenameDialog> {
     return AlertDialog(
       title: const Text('Renomear escolaridade'),
       content: TextField(
+        key: const ValueKey('rename_input'),
         controller: _ctrl,
         autofocus: true,
         maxLength: 120,
@@ -385,7 +446,10 @@ class _RenameDialogState extends State<_RenameDialog> {
         ),
         TextButton(
           onPressed: _submit,
-          child: const Text('Salvar', style: TextStyle(color: _buttonGreen, fontWeight: FontWeight.bold)),
+          child: const Text(
+            'Salvar',
+            style: TextStyle(color: _buttonGreen, fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
