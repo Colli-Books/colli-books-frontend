@@ -11,7 +11,7 @@
         <string>Editor</string>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>collibooks</string>
+          <string>Colli Books</string>
         </array>
       </dict>
     </array>
