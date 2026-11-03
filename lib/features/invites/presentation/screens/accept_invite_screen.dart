@@ -501,8 +501,10 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
     int maxLength = 255,
     TextInputAction action = TextInputAction.next,
     ValueChanged<String>? onSubmitted,
+    String? testKey,
   }) {
     return TextFormField(
+      key: testKey == null ? null : ValueKey(testKey),
       controller: controller,
       enabled: !_submitting,
       obscureText: obscure,

@@ -207,6 +207,7 @@ class _ConvidarProfessorScreenState extends State<ConvidarProfessorScreen> {
           ),
           const SizedBox(height: 8),
           TextField(
+            key: const ValueKey('invite_email'),
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,

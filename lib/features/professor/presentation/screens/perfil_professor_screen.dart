@@ -86,6 +86,7 @@ class _PerfilProfessorScreenState extends State<PerfilProfessorScreen> {
           ),
           const SizedBox(height: 48),
           OutlinedButton.icon(
+            key: const ValueKey('profile_logout'),
             onPressed: _loggingOut ? null : _confirmarLogout,
             icon: _loggingOut
                 ? const SizedBox(
@@ -143,6 +144,7 @@ class _PerfilProfessorScreenState extends State<PerfilProfessorScreen> {
             ),
           ),
           ElevatedButton(
+            key: const ValueKey('logout_confirm'),
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE56B6F),

@@ -302,6 +302,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         Expanded(
                           child: InkWell(
+                            key: const ValueKey('login_tab_forgot'),
                             onTap: () {
                               setState(() {
                                 _currentTab = 1;
@@ -354,6 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 8),
                               TextField(
+                                key: const ValueKey('login_email'),
                                 controller: _emailController,
                                 decoration: InputDecoration(
                                   hintText: 'seu@email.com',
@@ -412,6 +414,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 8),
                               TextField(
+                                key: const ValueKey('login_password'),
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: InputDecoration(
@@ -448,6 +451,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton.icon(
+                                  key: const ValueKey('login_submit'),
                                   onPressed: _isLoading ? null : _fazerLogin,
                                   icon: _isLoading
                                       ? const SizedBox(
@@ -476,6 +480,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: 12),
                               Center(
                                 child: TextButton(
+                                  key: const ValueKey('login_have_invite'),
                                   onPressed: _isLoading
                                       ? null
                                       : () => Navigator.push(
@@ -514,6 +519,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 8),
                               TextField(
+                                key: const ValueKey('forgot_email'),
                                 controller: _forgotEmailController,
                                 keyboardType: TextInputType.emailAddress,
                                 onChanged: (val) {
@@ -545,6 +551,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton.icon(
+                                  key: const ValueKey('forgot_submit'),
                                   onPressed: _isLoading ? null : _enviarRecuperacaoSenha,
                                   icon: _isLoading
                                       ? const SizedBox(
@@ -588,6 +595,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       Expanded(
                                         child: Text(
                                           _recoveryFeedback!,
+                                          key: const ValueKey('forgot_feedback_text'),
                                           style: const TextStyle(
                                             color: Color(0xFF1B5E20),
                                             fontSize: 12.5,
@@ -606,6 +614,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               // Alternar formulário para inserir código de token
                               InkWell(
+                                key: const ValueKey('forgot_show_reset'),
                                 onTap: () {
                                   setState(() {
                                     _showTokenFields = !_showTokenFields;
@@ -645,6 +654,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 TextField(
+                                  key: const ValueKey('reset_token'),
                                   controller: _resetTokenController,
                                   decoration: InputDecoration(
                                     hintText: 'Cole o código ou token aqui',
@@ -663,6 +673,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 TextField(
+                                  key: const ValueKey('reset_password'),
                                   controller: _newPasswordController,
                                   obscureText: _obscureNewPassword,
                                   decoration: InputDecoration(
@@ -687,6 +698,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   width: double.infinity,
                                   height: 48,
                                   child: ElevatedButton(
+                                    key: const ValueKey('reset_submit'),
                                     onPressed: _isLoading ? null : _confirmarRedefinicaoSenha,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF4A2525),
@@ -720,6 +732,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   // RODAPÉ DO CARD
                   const Divider(height: 1, color: Color(0xFFE0E0E0)),
                   InkWell(
+                    key: const ValueKey('login_footer_contact'),
                     onTap: () {
                       Navigator.push(
                         context,

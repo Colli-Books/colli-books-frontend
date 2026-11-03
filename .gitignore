@@ -51,3 +51,6 @@ app.*.map.json
 .env*
 datasets/
 *Contrato*
+test_bundle.dart
+test-results
+playwright-report

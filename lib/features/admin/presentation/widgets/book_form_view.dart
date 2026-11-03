@@ -443,12 +443,14 @@ class _BookFormViewState extends State<BookFormView> {
             shrinkWrap: true,
             children: [
               ListTile(
+                key: const ValueKey('level_option_none'),
                 title: const Text('Sem escolaridade', style: TextStyle(color: _secondaryTextColor)),
                 trailing: _selectedLevel == null ? const Icon(Icons.check, color: _buttonGreen) : null,
                 onTap: () => Navigator.pop(dialogContext, (level: null)),
               ),
               for (final l in levels)
                 ListTile(
+                  key: ValueKey('level_option_${l.id}'),
                   title: Text(l.name, style: const TextStyle(color: _primaryTextColor)),
                   trailing: l.id == _selectedLevel?.id ? const Icon(Icons.check, color: _buttonGreen) : null,
                   onTap: () => Navigator.pop(dialogContext, (level: l)),
@@ -495,6 +497,7 @@ class _BookFormViewState extends State<BookFormView> {
                   children: [
                     for (final t in all)
                       CheckboxListTile(
+                        key: ValueKey('theme_option_${t.id}'),
                         title: Text(t.name, style: const TextStyle(color: _primaryTextColor)),
                         activeColor: _buttonGreen,
                         value: temp.contains(t.id),
@@ -747,6 +750,7 @@ class _BookFormViewState extends State<BookFormView> {
         _label('Sinopse / Descrição'),
         const SizedBox(height: 8),
         TextField(
+          key: ValueKey('book_field_synopsis'),
           controller: _sinopseController,
           minLines: 4,
           maxLines: null,
@@ -866,6 +870,7 @@ class _BookFormViewState extends State<BookFormView> {
             _label('Escolaridade'),
             const SizedBox(height: 8),
             _pickerField(
+              fieldKey: const ValueKey('book_picker_level'),
               icon: Icons.school_outlined,
               placeholder: loading ? 'Carregando escolaridades...' : 'Selecione a escolaridade...',
               selectedText: _selectedLevel?.name,
@@ -879,6 +884,7 @@ class _BookFormViewState extends State<BookFormView> {
             _label('Temas Abordados'),
             const SizedBox(height: 8),
             _pickerField(
+              fieldKey: const ValueKey('book_picker_themes'),
               icon: Icons.category_outlined,
               placeholder: loading ? 'Carregando temas...' : 'Selecione os temas abordados...',
               selectedText: _selectedThemes.isEmpty ? null : '${_selectedThemes.length} selecionado(s)',
@@ -919,9 +925,11 @@ class _BookFormViewState extends State<BookFormView> {
     required Color badgeBg,
     required Color badgeFg,
     required VoidCallback? onTap,
+    Key? fieldKey,
   }) {
     final hasSelection = selectedText != null && selectedText.isNotEmpty;
     return InkWell(
+      key: fieldKey,
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -1067,6 +1075,7 @@ class _BookFormViewState extends State<BookFormView> {
         _label(label),
         const SizedBox(height: 8),
         TextField(
+          key: ValueKey('book_field_$fieldKey'),
           controller: controller,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,

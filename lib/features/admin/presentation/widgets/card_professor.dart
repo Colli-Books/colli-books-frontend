@@ -134,6 +134,7 @@ class CardProfessor extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
+                key: ValueKey('teacher_resend_${teacher.id}'),
                 onPressed: resending ? null : onResendInvite,
                 icon: resending
                     ? const SizedBox(

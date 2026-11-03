@@ -64,6 +64,7 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen> {
           ],
           const SizedBox(height: AppSizes.spacingXXl),
           OutlinedButton.icon(
+            key: const ValueKey('profile_logout'),
             onPressed: _loggingOut ? null : _confirmarLogout,
             icon: _loggingOut
                 ? const SizedBox(
@@ -124,6 +125,7 @@ class _PerfilAdminScreenState extends State<PerfilAdminScreen> {
             ),
           ),
           ElevatedButton(
+            key: const ValueKey('logout_confirm'),
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE56B6F),

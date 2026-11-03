@@ -27,6 +27,7 @@ Future<({int? id})?> showPickOneDialog(
           shrinkWrap: true,
           children: [
             ListTile(
+              key: const ValueKey('pick_option_all'),
               title: Text(allLabel, style: const TextStyle(color: Color(0xFF6B6B6B))),
               trailing: selectedId == null
                   ? const Icon(Icons.check, color: Color(0xFFA1A32D))
@@ -35,6 +36,7 @@ Future<({int? id})?> showPickOneDialog(
             ),
             for (final o in options)
               ListTile(
+                key: ValueKey('pick_option_${o.id}'),
                 title: Text(o.name, style: const TextStyle(color: Color(0xFF4A2525))),
                 trailing: o.id == selectedId
                     ? const Icon(Icons.check, color: Color(0xFFA1A32D))

@@ -239,6 +239,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                       _buildFieldLabel('Nome Completo'),
                       const SizedBox(height: 8),
                       TextFormField(
+                        key: const ValueKey('meus_dados_name'),
                         controller: _nomeController,
                         enabled: !_isLoading,
                         inputFormatters: [LengthLimitingTextInputFormatter(255)],
@@ -319,6 +320,7 @@ class _MeusDadosScreenState extends State<MeusDadosScreen> {
                       _buildFieldLabel('Escola/Instituição'),
                       const SizedBox(height: 8),
                       TextFormField(
+                        key: const ValueKey('meus_dados_school'),
                         controller: _escolaController,
                         enabled: !_isLoading,
                         forceErrorText: _serverErrors['school'],

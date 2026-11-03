@@ -98,6 +98,7 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
                   ),
                   const SizedBox(height: 8),
                   TextField(
+                    key: const ValueKey('invite_code_input'),
                     controller: _controller,
                     autocorrect: false,
                     enableSuggestions: false,

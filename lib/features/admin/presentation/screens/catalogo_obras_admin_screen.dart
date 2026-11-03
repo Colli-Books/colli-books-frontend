@@ -106,6 +106,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
             shrinkWrap: true,
             children: [
               ListTile(
+                key: const ValueKey('pick_option_all'),
                 title: Text(allLabel, style: const TextStyle(color: Color(0xFF6B6B6B))),
                 trailing: selectedId == null
                     ? const Icon(Icons.check, color: Color(0xFFA1A32D))
@@ -114,6 +115,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
               ),
               for (final o in options)
                 ListTile(
+                  key: ValueKey('pick_option_${o.id}'),
                   title: Text(o.name, style: const TextStyle(color: Color(0xFF4A2525))),
                   trailing: o.id == selectedId
                       ? const Icon(Icons.check, color: Color(0xFFA1A32D))
@@ -172,6 +174,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
 
             // Fora do ListenableBuilder: digitar não reconstrói o campo.
             TextField(
+              key: const ValueKey('catalog_search'),
               onChanged: _books.setQuery, // debounce de 400 ms no controller
               decoration: InputDecoration(
                 hintText: 'Buscar por título ou autor...',
@@ -246,6 +249,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
             label: levelName ?? 'Escolaridades',
             active: levelName != null,
             onPressed: ready ? _filtrarEscolaridade : null,
+            key: const ValueKey('catalog_filter_level')
           ),
         ),
         const SizedBox(width: 8),
@@ -254,6 +258,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
             label: themeName ?? 'Temas',
             active: themeName != null,
             onPressed: ready ? _filtrarTema : null,
+            key: const ValueKey('catalog_filter_theme')
           ),
         ),
       ],
@@ -264,8 +269,10 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
     required String label,
     required bool active,
     required VoidCallback? onPressed,
+    Key? key,
   }) {
     return OutlinedButton.icon(
+      key: key,
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -451,6 +458,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                         child: Tooltip(
                           message: 'Editar obra',
                           child: InkWell(
+                            key: ValueKey('book_edit_${book.id}'),
                             onTap: () => _abrir(EditarObraScreen(bookId: book.id)),
                             child: const Padding(
                               padding: EdgeInsets.all(2.0),

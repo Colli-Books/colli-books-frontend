@@ -187,6 +187,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
+                      key: const ValueKey('theme_name_input'),
                       controller: _controller,
                       maxLength: 120,
                       textInputAction: TextInputAction.done,
@@ -217,6 +218,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
+                        key: const ValueKey('theme_submit'),
                         onPressed: _saving ? null : _cadastrar,
                         icon: _saving
                             ? const SizedBox(
@@ -285,6 +287,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
                         ),
                       ),
                       IconButton(
+                        key: ValueKey('theme_edit_${theme.id}'),
                         tooltip: 'Renomear',
                         icon: const Icon(Icons.edit_outlined, color: _primaryTextColor),
                         onPressed: _saving ? null : () => _renomear(theme),
@@ -364,6 +367,7 @@ class _RenameDialogState extends State<_RenameDialog> {
     return AlertDialog(
       title: const Text('Renomear tema'),
       content: TextField(
+        key: const ValueKey('rename_input'),
         controller: _ctrl,
         autofocus: true,
         maxLength: 120,
