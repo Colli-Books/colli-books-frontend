@@ -1,0 +1,774 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/network/api_exception.dart';
+import '../../../../core/utils/validators.dart';
+import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
+import '../../data/services/auth_api_service.dart';
+import '../controllers/auth_controller.dart';
+import '../../../invites/presentation/screens/invite_code_screen.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _forgotEmailController = TextEditingController();
+  final TextEditingController _resetTokenController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+
+  int _currentTab = 0; // 0 = Entrar, 1 = Esqueci a Senha
+  bool _obscurePassword = true;
+  bool _obscureNewPassword = true;
+  bool _isLoading = false;
+  String? _recoveryFeedback;
+  String? _forgotEmailError;
+  bool _showTokenFields = false;
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: const Color(0xFFC62828)),
+    );
+  }
+
+  // --- Mensagens por `code` (nunca decidir pelo texto da API) ---------------
+
+  String _loginMessage(ApiException e) => switch (e.code) {
+    'INVALID_CREDENTIALS' => 'E-mail ou senha incorretos.',
+    'RATE_LIMITED' => 'Muitas tentativas. Aguarde um instante e tente de novo.',
+    'VALIDATION_ERROR' => 'Confira o e-mail informado.',
+    _ => e.message, // inclui NETWORK_ERROR e TIMEOUT
+  };
+
+  String _recoveryMessage(ApiException e) => switch (e.code) {
+    'RATE_LIMITED' => 'Muitas solicitações. Aguarde um instante e tente de novo.',
+    'VALIDATION_ERROR' => 'Confira o e-mail informado.',
+    _ => e.message,
+  };
+
+  String _resetMessage(ApiException e) => switch (e.code) {
+    'RESET_TOKEN_INVALID' =>
+    'Código inválido, já usado ou expirado. Solicite um novo link.',
+    'WEAK_PASSWORD' => 'A senha deve ter entre 8 e 128 caracteres.',
+    'RATE_LIMITED' => 'Muitas tentativas. Aguarde um instante e tente de novo.',
+    'VALIDATION_ERROR' => 'Confira o código e a nova senha.',
+    _ => e.message,
+  };
+
+  // --- Ações ----------------------------------------------------------------
+
+  Future<void> _fazerLogin() async {
+    final email = _emailController.text.trim();
+    final senha = _passwordController.text;
+
+    if (email.isEmpty || senha.isEmpty) {
+      _showError('Por favor, preencha o e-mail e a senha.');
+      return;
+    }
+    final emailError = FormValidators.validateEmail(email);
+    if (emailError != null) {
+      _showError(emailError);
+      return;
+    }
+
+    final auth = context.read<AuthController>(); // antes do await
+    setState(() => _isLoading = true);
+    try {
+      await auth.login(email, senha);
+      // Sucesso: o AuthGate troca de tela (admin x professor pelo `role`).
+      // NÃO navegue manualmente aqui.
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _showError(_loginMessage(e));
+    } catch (e, st) {
+      // Bug inesperado (ex.: JSON fora do formato): não esconder nos logs.
+      debugPrint('Falha inesperada no login: $e\n$st');
+      if (!mounted) return;
+      _showError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      // Em sucesso a tela já foi descartada: mounted == false.
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _enviarRecuperacaoSenha() async {
+    final email = _forgotEmailController.text.trim();
+    final validationError = FormValidators.validateEmail(email);
+
+    if (validationError != null) {
+      setState(() => _forgotEmailError = validationError);
+      _showError(validationError);
+      return;
+    }
+
+    final service = context.read<AuthApiService>();
+    setState(() {
+      _isLoading = true;
+      _recoveryFeedback = null;
+      _forgotEmailError = null;
+    });
+
+    try {
+      final msg = await service.forgotPassword(email);
+      if (!mounted) return;
+      setState(() => _recoveryFeedback = msg); // 202: sempre a mesma resposta
+    } on ApiException catch (e) {
+      // Falha real (rede, 429, 422): NÃO fingir que o e-mail foi enviado.
+      if (!mounted) return;
+      _showError(_recoveryMessage(e));
+    } catch (e, st) {
+      debugPrint('Falha inesperada no forgot-password: $e\n$st');
+      if (!mounted) return;
+      _showError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmarRedefinicaoSenha() async {
+    final token = _resetTokenController.text.trim();
+    final newPassword = _newPasswordController.text;
+
+    if (token.isEmpty) {
+      _showError('Informe o código/token recebido por e-mail.');
+      return;
+    }
+
+    final passwordError = FormValidators.validatePassword(newPassword);
+    if (passwordError != null) {
+      _showError(passwordError);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      _showError('A nova senha deve ter no mínimo 8 caracteres.');
+      return;
+    }
+
+    final service = context.read<AuthApiService>();
+    setState(() => _isLoading = true);
+
+    try {
+      await service.resetPassword(token: token, newPassword: newPassword);
+      if (!mounted) return;
+      setState(() {
+        _currentTab = 0; // volta para o login (todas as sessões foram encerradas)
+        _showTokenFields = false;
+        _recoveryFeedback = null;
+        _resetTokenController.clear();
+        _newPasswordController.clear();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Senha redefinida com sucesso! Você já pode entrar com sua nova senha.'),
+          backgroundColor: Color(0xFFA1A32D),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _showError(_resetMessage(e));
+    } catch (e, st) {
+      debugPrint('Falha inesperada no reset-password: $e\n$st');
+      if (!mounted) return;
+      _showError('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _forgotEmailController.dispose();
+    _resetTokenController.dispose();
+    _newPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const backgroundColor = Color(0xFFF3EFE4);
+    const cardTopColor = Color(0xFFF8F5EE);
+    const cardBottomColor = Colors.white;
+    const primaryTextColor = Color(0xFF331212);
+    const labelColor = Color(0xFF1D1C13);
+    const buttonColor = Color(0xFFA1A32D);
+    const linkColor = Color(0xFF1D8E9E);
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Container(
+              width: 420,
+              decoration: BoxDecoration(
+                color: cardBottomColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // PARTE SUPERIOR DO CARD (Logo e Título)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+                    decoration: const BoxDecoration(
+                      color: cardTopColor,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFEBE8E0), width: 1),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          'imagens/Logo-Colli-Booksteste.webp',
+                          height: 60,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const Text(
+                            'Colli Books',
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A2525), fontSize: 24),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          _currentTab == 0
+                              ? 'Bem-vindo ao Portal Colli\nBooks'
+                              : 'Recuperação de Senha',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: primaryTextColor,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // SELETOR DE ABAS: [ ENTRAR | ESQUECI A SENHA ]
+                  Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFEBE8E0), width: 1),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _currentTab = 0;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: _currentTab == 0 ? buttonColor : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                'Entrar',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _currentTab == 0 ? primaryTextColor : Colors.grey,
+                                  fontWeight: _currentTab == 0 ? FontWeight.bold : FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            key: const ValueKey('login_tab_forgot'),
+                            onTap: () {
+                              setState(() {
+                                _currentTab = 1;
+                                if (_forgotEmailController.text.isEmpty && _emailController.text.isNotEmpty) {
+                                  _forgotEmailController.text = _emailController.text;
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: _currentTab == 1 ? buttonColor : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                'Esqueci a Senha',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _currentTab == 1 ? primaryTextColor : Colors.grey,
+                                  fontWeight: _currentTab == 1 ? FontWeight.bold : FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // CORPO: ABA 0 (LOGIN) OU ABA 1 (ESQUECI A SENHA)
+                  Padding(
+                    padding: const EdgeInsets.all(28.0),
+                    child: _currentTab == 0
+                        // ABA 0: FORMULÁRIO DE ENTRAR
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'E-mail',
+                                style: TextStyle(
+                                  color: labelColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                key: const ValueKey('login_email'),
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  hintText: 'seu@email.com',
+                                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: buttonColor),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Senha',
+                                    style: TextStyle(
+                                      color: labelColor,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _currentTab = 1;
+                                        if (_forgotEmailController.text.isEmpty && _emailController.text.isNotEmpty) {
+                                          _forgotEmailController.text = _emailController.text;
+                                        }
+                                      });
+                                    },
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const Text(
+                                      'Esqueci minha senha',
+                                      style: TextStyle(
+                                        color: linkColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                key: const ValueKey('login_password'),
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  hintText: '••••••••',
+                                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      color: Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: buttonColor),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton.icon(
+                                  key: const ValueKey('login_submit'),
+                                  onPressed: _isLoading ? null : _fazerLogin,
+                                  icon: _isLoading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.login, color: Colors.white),
+                                  label: Text(
+                                    _isLoading ? 'Entrando...' : 'Entrar',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: buttonColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Center(
+                                child: TextButton(
+                                  key: const ValueKey('login_have_invite'),
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute<void>(builder: (_) => const InviteCodeScreen()),
+                                  ),
+                                  child: const Text(
+                                    'Tenho um convite',
+                                    style: TextStyle(color: linkColor, fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        // ABA 1: FORMULÁRIO DE ESQUECI A SENHA
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Informe seu e-mail cadastrado. Enviaremos um link seguro para você redefinir sua senha de acesso.',
+                                style: TextStyle(
+                                  color: Color(0xFF6B7280),
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              const Text(
+                                'E-mail cadastrado',
+                                style: TextStyle(
+                                  color: labelColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                key: const ValueKey('forgot_email'),
+                                controller: _forgotEmailController,
+                                keyboardType: TextInputType.emailAddress,
+                                onChanged: (val) {
+                                  if (_forgotEmailError != null) {
+                                    setState(() => _forgotEmailError = null);
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  hintText: 'seu@email.com',
+                                  errorText: _forgotEmailError,
+                                  prefixIcon: const Icon(Icons.mark_email_read_outlined, color: Colors.grey),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: buttonColor),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton.icon(
+                                  key: const ValueKey('forgot_submit'),
+                                  onPressed: _isLoading ? null : _enviarRecuperacaoSenha,
+                                  icon: _isLoading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.send_rounded, color: Colors.white),
+                                  label: Text(
+                                    _isLoading ? 'Enviando...' : 'Enviar Link de Recuperação',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: buttonColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+
+                              if (_recoveryFeedback != null) ...[
+                                const SizedBox(height: 18),
+                                Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5E9),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFFA5D6A7)),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.check_circle_outline, color: Color(0xFF2E7D32), size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          _recoveryFeedback!,
+                                          key: const ValueKey('forgot_feedback_text'),
+                                          style: const TextStyle(
+                                            color: Color(0xFF1B5E20),
+                                            fontSize: 12.5,
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+
+                              const SizedBox(height: 20),
+                              const Divider(color: Color(0xFFEBE8E0)),
+                              const SizedBox(height: 12),
+
+                              // Alternar formulário para inserir código de token
+                              InkWell(
+                                key: const ValueKey('forgot_show_reset'),
+                                onTap: () {
+                                  setState(() {
+                                    _showTokenFields = !_showTokenFields;
+                                  });
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _showTokenFields
+                                          ? 'Ocultar redefinição com código'
+                                          : 'Já possui o código/token? Redefinir senha',
+                                      style: const TextStyle(
+                                        color: linkColor,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12.5,
+                                      ),
+                                    ),
+                                    Icon(
+                                      _showTokenFields ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                      size: 18,
+                                      color: linkColor,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              if (_showTokenFields) ...[
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Código / Token do e-mail',
+                                  style: TextStyle(
+                                    color: labelColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                TextField(
+                                  key: const ValueKey('reset_token'),
+                                  controller: _resetTokenController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Cole o código ou token aqui',
+                                    prefixIcon: const Icon(Icons.vpn_key_outlined, color: Colors.grey, size: 20),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Nova Senha (mínimo 8 caracteres)',
+                                  style: TextStyle(
+                                    color: labelColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                TextField(
+                                  key: const ValueKey('reset_password'),
+                                  controller: _newPasswordController,
+                                  obscureText: _obscureNewPassword,
+                                  decoration: InputDecoration(
+                                    hintText: 'Digite a nova senha',
+                                    prefixIcon: const Icon(Icons.lock_reset, color: Colors.grey, size: 20),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscureNewPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        color: Colors.grey,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscureNewPassword = !_obscureNewPassword;
+                                        });
+                                      },
+                                    ),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton(
+                                    key: const ValueKey('reset_submit'),
+                                    onPressed: _isLoading ? null : _confirmarRedefinicaoSenha,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF4A2525),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: const Text(
+                                      'Confirmar Nova Senha',
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+
+                              const SizedBox(height: 16),
+                              Center(
+                                child: TextButton.icon(
+                                  onPressed: () {
+                                    setState(() => _currentTab = 0);
+                                  },
+                                  icon: const Icon(Icons.arrow_back, size: 16, color: primaryTextColor),
+                                  label: const Text(
+                                    'Voltar para o Login',
+                                    style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+
+                  // RODAPÉ DO CARD
+                  const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                  InkWell(
+                    key: const ValueKey('login_footer_contact'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(builder: (context) => const FaleConoscoScreen()),
+                      );
+                    },
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.info_outline, size: 18, color: Color(0xFF6B7280)),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Acesso exclusivo mediante convite\ninstitucional. Clique para Fale Conosco',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF6B7280),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

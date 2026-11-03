@@ -46,3 +46,11 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Environment & Local datasets/contracts
+.env*
+datasets/
+*Contrato*
+test_bundle.dart
+test-results
+playwright-report
