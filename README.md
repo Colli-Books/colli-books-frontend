@@ -28,7 +28,7 @@ docker compose version
 ```
 colli-books-frontend/
 ├── lib/
-│   ├── main.dart             # composição do app (serviços, controllers) e AuthGate
+│   ├── main.dart             # ColliBooksRoot (composição: serviços, controllers) e AuthGate
 │   ├── core/                 # infraestrutura compartilhada
 │   │   ├── config/           # endereço da API e timeouts (app_config.dart)
 │   │   ├── network/          # ApiClient, ApiException, json_helpers, media_url
@@ -43,6 +43,7 @@ colli-books-frontend/
 │       ├── admin/            # área da editora
 │       ├── professor/        # área do professor
 │       └── institucional/    # Sobre Nós, Termos de Uso, Política de Privacidade, Fale Conosco
+├── patrol_test/              # testes E2E (Patrol), contra o backend real
 ├── android/
 ├── ios/
 └── pubspec.yaml              # dependências
@@ -284,6 +285,177 @@ flutter build appbundle --dart-define=API_BASE_URL=https://api.seudominio.com
 flutter build ios --dart-define=API_BASE_URL=https://api.seudominio.com
 ```
 
+## Testes E2E (Patrol)
+
+Testes de ponta a ponta com o [Patrol](https://patrol.leancode.co): o app roda de
+verdade em um emulador, simulador ou aparelho, conversa com o **backend real** e o
+teste usa a interface como um usuário (digita, toca e confere o que aparece). O Patrol
+estende o `integration_test` do Flutter e também controla o sistema operacional, por
+exemplo para abrir o link de convite `collibooks://convite`.
+
+A estratégia é **preparar o estado pela API e testar só a interface**: o teste cria
+professores, obras e temas direto na API (`E2eApi`) e só então abre o app. Isso deixa
+cada teste curto e independente dos outros.
+
+### Preparação
+
+1. Instale o Patrol CLI e confira o ambiente:
+
+```bash
+dart pub global activate patrol_cli
+patrol doctor
+```
+
+2. Declare o Patrol no `pubspec.yaml`:
+
+```yaml
+dev_dependencies:
+  patrol: ^4.3.0        # confira a versão atual e o Flutter mínimo no pub.dev
+  flutter_test:
+    sdk: flutter
+
+patrol:
+  app_name: Colli Books
+  android:
+    package_name: <applicationId>
+  ios:
+    bundle_id: <bundle id>
+```
+
+3. Faça a configuração nativa (Android e iOS) conforme a documentação da versão do
+   Patrol instalada. O `patrol doctor` indica o que ainda falta. Os testes ficam em
+   `patrol_test/` (versões 3.x do Patrol usam `integration_test/`).
+
+4. Tenha um emulador, simulador ou aparelho conectado (`flutter devices`).
+
+### Backend de teste
+
+Os testes criam dados (professores, obras, temas, escolaridades) com nomes únicos por
+execução, e a API não tem exclusão. Por isso, use um **banco de teste recriado a cada
+execução**, com o administrador do seed:
+
+```bash
+cd ../colli-books-backend
+docker compose down -v            # apaga o banco
+docker compose up --build -d
+docker compose exec backend alembic upgrade head
+docker compose exec backend python -m app.cli seed-admin --email admin@colli.com --name "Editora Colli"
+```
+
+O `seed-demo` não é necessário: os testes preparam os próprios dados.
+
+### Variáveis
+
+Passadas com `--dart-define`:
+
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `API_BASE_URL` | sim | Endereço da API (mesma tabela da seção "Endereço da API") |
+| `E2E_ADMIN_EMAIL` | sim | E-mail do administrador criado pelo `seed-admin` |
+| `E2E_ADMIN_PASSWORD` | sim | Senha do administrador |
+| `E2E_EXPIRED_INVITE_TOKEN` | não | Token de um convite expirado; habilita o teste de convite expirado |
+| `E2E_ACCESS_TTL_SECONDS` | não | Validade (em segundos) do access token configurada no backend de teste; habilita o teste de renovação de sessão |
+
+Nunca grave a senha no repositório: leia-a de uma variável de ambiente do shell ou dos
+*secrets* do CI.
+
+### Como rodar
+
+```bash
+export E2E_ADMIN_PASSWORD='...'
+
+# todos os testes (emulador Android)
+patrol test \
+  --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
+  --dart-define=E2E_ADMIN_EMAIL=admin@colli.com \
+  --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
+
+# um arquivo
+patrol test --target patrol_test/auth_test.dart \
+  --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
+  --dart-define=E2E_ADMIN_EMAIL=admin@colli.com \
+  --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
+
+# um dispositivo específico
+patrol test -d <id-do-dispositivo> --dart-define=...
+```
+
+No simulador iOS, use `API_BASE_URL=http://localhost:8000`.
+
+O teste de renovação de sessão exige o backend de teste com a validade do access token
+curta (por exemplo, 10 segundos). Rode-o **sozinho**, porque o preparo de dados dos
+outros testes também expiraria no meio:
+
+```bash
+patrol test --target patrol_test/sessao_test.dart \
+  --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
+  --dart-define=E2E_ADMIN_EMAIL=admin@colli.com \
+  --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" \
+  --dart-define=E2E_ACCESS_TTL_SECONDS=10
+```
+
+### Organização dos testes
+
+```
+patrol_test/
+├── auth_test.dart          # login, sessão, recuperação e redefinição de senha
+├── convites_test.dart      # convite de professor e primeiro acesso (inclui deep link)
+├── busca_test.dart         # busca, filtros, detalhe da obra, perfil do professor e Minha Seleção
+├── gestao_test.dart        # painel do admin: contadores, obras, temas, escolaridades e vínculos
+├── navegacao_test.dart     # menu lateral e Fale Conosco
+├── sessao_test.dart        # isolamento entre contas e renovação da sessão
+└── support/
+    ├── e2e_env.dart        # variáveis --dart-define dos testes
+    ├── e2e_api.dart        # prepara dados direto na API (admin, professores, obras, temas)
+    └── e2e_driver.dart     # ações e esperas de interface (única camada que usa o Patrol)
+```
+
+### Como os testes encontram os elementos
+
+Por chaves (`ValueKey('nome_em_snake_case')`) nos widgets, ou pelo texto exibido.
+Elementos de listas levam o id na chave (`book_save_12`, `theme_edit_7`). A lista
+completa de chaves está em `docs/E2E_SETUP.md`. Ao criar um widget que um teste precise
+tocar ou preencher, dê uma chave a ele.
+
+### Escrevendo um teste novo
+
+```dart
+patrolTest('professor salva uma obra', ($) async {
+  final api = await E2eApi.asAdmin();
+  final book = await api.book();                      // dados preparados pela API
+  final teacher = await api.createActiveTeacher();
+
+  await $.launchApp();                                // app do zero, sem sessão
+  await $.loginAsTeacher(teacher.email, teacher.password);
+
+  await $.typeKey('catalog_search', book.title);
+  await $.tapKey('book_save_${book.id}', scroll: true);
+  await $.seeText('"${book.title}" adicionado à sua Seleção!');
+});
+```
+
+Regras da suíte:
+
+- **Prepare o estado pela API** (`E2eApi`), não pela interface.
+- **Use valores únicos** (`uniq('Tema')`, `uniqEmail('prof')`, `uniqIsbn()`): o banco é compartilhado entre os testes.
+- **Espere pelo resultado** (`seeText`, `seeKey`, `waitFor`): o backend é real e nada é instantâneo.
+- **Todo acesso ao Patrol fica em `support/e2e_driver.dart`.** Se uma versão do Patrol mudar um nome, o ajuste é feito só nesse arquivo.
+
+A suíte confere o fluxo pela interface. O envio da capa (seletor de arquivos do sistema)
+e o toque em links externos (que abrem o navegador) são conferidos manualmente.
+
+### Solução de problemas dos testes
+
+| Sintoma | O que verificar |
+|---|---|
+| `Defina --dart-define=E2E_ADMIN_EMAIL=...` | As variáveis obrigatórias não foram passadas |
+| Falha de login no preparo de dados | Credenciais do `seed-admin`, `API_BASE_URL` e backend no ar |
+| "Tempo esgotado esperando elemento com chave ..." | A chave não existe na tela (veja `docs/E2E_SETUP.md`) ou a tela não chegou a carregar |
+| Execução lenta ou listas de filtro muito longas | Banco acumulado de execuções anteriores; recrie com `docker compose down -v` |
+| O deep link não abre a tela de cadastro | Configuração do deep link nos arquivos nativos; no iOS o sistema pode pedir confirmação antes de abrir o app |
+| Testes aparecem como pulados | Testes opcionais sem a variável de ambiente, ou marcados como pulados no código (o motivo aparece no nome) |
+| `patrol doctor` aponta erros | Configuração nativa do Patrol; siga a documentação da versão instalada |
+
 ## Comandos úteis
 
 ```bash
@@ -307,6 +479,17 @@ flutter clean && flutter pub get
 
 # diagnóstico do ambiente
 flutter doctor -v
+
+# diagnóstico do Patrol (testes E2E)
+patrol doctor
+
+# rodar os testes E2E (veja a seção "Testes E2E")
+patrol test --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
+  --dart-define=E2E_ADMIN_EMAIL=admin@colli.com \
+  --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
+
+# recriar o banco do backend de teste (apaga os dados)
+(cd ../colli-books-backend && docker compose down -v)
 
 # expor a porta do backend a um celular Android ligado por USB
 adb reverse tcp:8000 tcp:8000
