@@ -32,7 +32,7 @@ jobs:
         
       - name: Build Android Release with Obfuscation
         run: |
-          flutter build appbundle --release \
+          flutter build apk --release \
             --obfuscate \
             --split-debug-info=build/app/outputs/symbols \
             --dart-define=API_BASE_URL="${{ secrets.API_BASE_URL }}"
