@@ -413,8 +413,7 @@ patrol_test/
 ### Como os testes encontram os elementos
 
 Por chaves (`ValueKey('nome_em_snake_case')`) nos widgets, ou pelo texto exibido.
-Elementos de listas levam o id na chave (`book_save_12`, `theme_edit_7`). A lista
-completa de chaves está em `docs/E2E_SETUP.md`. Ao criar um widget que um teste precise
+Elementos de listas levam o id na chave (`book_save_12`, `theme_edit_7`). Ao criar um widget que um teste precise
 tocar ou preencher, dê uma chave a ele.
 
 ### Escrevendo um teste novo
@@ -450,7 +449,7 @@ e o toque em links externos (que abrem o navegador) são conferidos manualmente.
 |---|---|
 | `Defina --dart-define=E2E_ADMIN_EMAIL=...` | As variáveis obrigatórias não foram passadas |
 | Falha de login no preparo de dados | Credenciais do `seed-admin`, `API_BASE_URL` e backend no ar |
-| "Tempo esgotado esperando elemento com chave ..." | A chave não existe na tela (veja `docs/E2E_SETUP.md`) ou a tela não chegou a carregar |
+| "Tempo esgotado esperando elemento com chave ..." | A chave não existe na tela ou a tela não chegou a carregar |
 | Execução lenta ou listas de filtro muito longas | Banco acumulado de execuções anteriores; recrie com `docker compose down -v` |
 | O deep link não abre a tela de cadastro | Configuração do deep link nos arquivos nativos; no iOS o sistema pode pedir confirmação antes de abrir o app |
 | Testes aparecem como pulados | Testes opcionais sem a variável de ambiente, ou marcados como pulados no código (o motivo aparece no nome) |
