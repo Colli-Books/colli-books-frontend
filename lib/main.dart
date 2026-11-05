@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/config/app_config.dart';
 import 'core/network/api_client.dart';
 import 'core/session/session_manager.dart';
 import 'core/session/token_storage.dart';
@@ -19,6 +21,16 @@ import 'features/professor/presentation/screens/professor_home_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+
+    final uri = Uri.tryParse(AppConfig.apiBaseUrl);
+    if (uri == null || uri.scheme != 'https') {
+      throw StateError(
+        'Build de release exige API_BASE_URL com https:// (recebido: ${AppConfig.apiBaseUrl}).',
+      );
+    }
+  }
   runApp(const ColliBooksRoot());
 }
 
