@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:colli_books_frontend/core/session/session_manager.dart';
+import 'package:colli_books_frontend/core/session/token_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -28,7 +30,7 @@ void main() {
 
       final apiClient = ApiClient(
         baseUrl: 'http://localhost:8000/api/v1',
-        httpClient: mockHttpClient,
+        client: mockHttpClient,
       );
 
       final result = await apiClient.get('/livros');
@@ -51,7 +53,7 @@ void main() {
 
       final apiClient = ApiClient(
         baseUrl: 'http://localhost:8000/api/v1',
-        httpClient: mockHttpClient,
+        client: mockHttpClient,
       );
 
       expect(
@@ -75,8 +77,10 @@ void main() {
         );
       });
 
-      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', httpClient: mockHttpClient);
-      final authService = AuthApiService(apiClient: apiClient);
+      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', client: mockHttpClient);
+      final sessionManager = SessionManager(apiClient, TokenStorage());
+
+      final authService = AuthApiService(apiClient, sessionManager);
 
       final message = await authService.forgotPassword('prof.teste@escola.com.br');
       expect(message, contains('link de recuperação'));
@@ -98,8 +102,10 @@ void main() {
         );
       });
 
-      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', httpClient: mockHttpClient);
-      final authService = AuthApiService(apiClient: apiClient);
+      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', client: mockHttpClient);
+      final sessionManager = SessionManager(apiClient, TokenStorage());
+
+      final authService = AuthApiService(apiClient, sessionManager);
 
       await authService.resetPassword(token: 'TOKEN-123456', newPassword: 'NovaSenha2026');
     });
@@ -125,7 +131,7 @@ void main() {
         );
       });
 
-      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', httpClient: mockHttpClient);
+      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', client: mockHttpClient);
       final professorService = ProfessorApiService(apiClient: apiClient);
 
       final result = await professorService.updateProfile(
@@ -144,7 +150,7 @@ void main() {
         throw http.ClientException('Falha de conexão com o servidor local.');
       });
 
-      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', httpClient: mockHttpClient);
+      final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api/v1', client: mockHttpClient);
       final professorService = ProfessorApiService(apiClient: apiClient);
 
       final result = await professorService.updateProfile(

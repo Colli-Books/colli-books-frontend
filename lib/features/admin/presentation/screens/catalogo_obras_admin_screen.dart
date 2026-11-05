@@ -55,7 +55,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
       context,
       MaterialPageRoute<Object?>(builder: (_) => screen),
     );
-    if (mounted) _reloadAll();
+    if (mounted) await _reloadAll();
   }
 
   // --- Filtros (seleção única) ------------------------------------------------

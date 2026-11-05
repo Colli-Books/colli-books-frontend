@@ -181,7 +181,7 @@ class _ObraListCardState extends State<ObraListCard> {
           : Image.network(
         coverUrl,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => placeholder,
+        errorBuilder: (_, _, _) => placeholder,
       ),
     );
     if (coverUrl == null) return box; // sem capa: nada para abrir em tela cheia

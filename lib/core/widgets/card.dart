@@ -27,7 +27,7 @@ class SummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.spacingMd),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: AppSizes.radiusXMd,
             spreadRadius: 0,
             offset: Offset(0, 4),
@@ -85,7 +85,7 @@ class ActionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: AppSizes.radiusXMd,
             offset: const Offset(0, 4),
           ),

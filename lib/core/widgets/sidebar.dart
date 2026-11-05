@@ -7,7 +7,7 @@ import '../../features/institucional/presentation/screens/sobre_nos_screen.dart'
 import '../../features/institucional/presentation/screens/termos_uso_screen.dart';
 import '../theme/colors.dart';
 import '../theme/sizes.dart';
-import 'botaoTerciario.dart';
+import 'botao_terciario.dart';
 
 Future<void> abrirLink(String urlStr) async {
   final Uri url = Uri.parse(urlStr);

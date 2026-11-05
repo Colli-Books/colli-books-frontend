@@ -149,7 +149,7 @@ class CatalogApiService {
   Future<EducationLevelModel> updateEducationLevel(int id, {String? name, int? sortOrder}) async {
     final json = asJsonMap(await _api.patch('/education-levels/$id', body: {
       if (name != null) 'name': name.trim(),
-      if (sortOrder != null) 'sort_order': sortOrder,
+      'sort_order': ?sortOrder,
     }));
     return parseResponse(() => EducationLevelModel.fromJson(json));
   }

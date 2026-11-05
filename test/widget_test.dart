@@ -5,7 +5,7 @@ import 'package:colli_books_frontend/core/widgets/fullscreen_image_viewer.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const ColliBooksRoot());
     await tester.pump();
   });
 

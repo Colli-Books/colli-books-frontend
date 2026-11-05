@@ -47,7 +47,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       context,
       MaterialPageRoute<Object?>(builder: (_) => screen),
     );
-    if (mounted) _overview.load();
+    if (mounted) await _overview.load();
   }
 
   void _irParaProfessores(String filtro) {
@@ -74,7 +74,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           'imagens/Logo-Colli-Booksteste.webp',
           height: 38,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Text(
+          errorBuilder: (_, _, _) => const Text(
             'Colli Books',
             style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A2525), fontSize: 18),
           ),

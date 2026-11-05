@@ -86,7 +86,7 @@ class ApiException implements Exception {
     final d = details;
     if (d is! List) return const {};
     final out = <String, String>{};
-    for (final e in d.whereType<Map>()) {
+    for (final e in d.whereType<Map<String, dynamic>>()) {
       final loc = e['loc'];
       if (loc is! List) continue;
       final field = loc

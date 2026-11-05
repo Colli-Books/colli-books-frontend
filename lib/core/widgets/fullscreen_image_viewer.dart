@@ -189,8 +189,8 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
     } else {
       final position = _doubleTapDetails?.localPosition ?? Offset.zero;
       _transformationController.value = Matrix4.identity()
-        ..translate(-position.dx * 1.5, -position.dy * 1.5)
-        ..scale(2.5);
+        ..translateByDouble(-position.dx * 1.5, -position.dy * 1.5, 0.0, 0.0)
+        ..scaleByDouble(2.5, 2.5, 1.0, 1.0);
     }
   }
 

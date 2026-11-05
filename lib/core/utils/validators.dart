@@ -7,7 +7,7 @@ class IsbnInputFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final text = newValue.text;
-    int cursorPosition = newValue.selection.end;
+    final int cursorPosition = newValue.selection.end;
     int digitsBeforeCursor = 0;
     for (int i = 0; i < cursorPosition && i < text.length; i++) {
       if (RegExp(r'[0-9]').hasMatch(text[i])) {

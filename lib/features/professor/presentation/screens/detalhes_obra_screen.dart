@@ -198,7 +198,7 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
                     ? Image.network(
                   coverUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: const Color(0xFFE8E0D5)),
+                  errorBuilder: (_, _, _) => Container(color: const Color(0xFFE8E0D5)),
                 )
                     : null,
               ),
@@ -239,7 +239,7 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
                             ? Image.network(
                           coverUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _coverPlaceholder(),
+                          errorBuilder: (_, _, _) => _coverPlaceholder(),
                         )
                             : _coverPlaceholder(),
                       ),

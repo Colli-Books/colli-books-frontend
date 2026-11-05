@@ -77,7 +77,7 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
       MaterialPageRoute<Object?>(builder: (_) => const ConvidarProfessorScreen()),
     );
     // Recarrega com qualquer resultado: o botão voltar do sistema devolve null.
-    if (mounted) _controller.load();
+    if (mounted) await _controller.load();
   }
 
   Future<void> _reenviarConvite(TeacherModel teacher) async {
@@ -121,7 +121,7 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
       _showError(_resendMessage(e));
       // Lista desatualizada (o professor já ativou a conta, ou foi removido): sincroniza.
       if (e.code == 'ACCOUNT_ALREADY_ACTIVE' || e.code == 'NOT_FOUND') {
-        _controller.load();
+        await _controller.load();
       }
     } catch (e, st) {
       debugPrint('Falha inesperada ao reenviar convite: $e\n$st');

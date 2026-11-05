@@ -9,10 +9,9 @@ import 'screens/accept_invite_screen.dart';
 
 class InviteLinkHandler {
   InviteLinkHandler({
-    required GlobalKey<NavigatorState> navigatorKey,
-    required AuthController auth,
-  })  : _navigatorKey = navigatorKey,
-        _auth = auth;
+    required this._navigatorKey,
+    required this._auth,
+  });
 
   final GlobalKey<NavigatorState> _navigatorKey;
   final AuthController _auth;
@@ -50,7 +49,7 @@ class InviteLinkHandler {
     final context = _navigatorKey.currentContext;
     if (nav == null || context == null) return;
 
-    if (_auth.status == AuthStatus.authenticated) {
+    if (_auth.status == AuthStatus.authenticated && context.mounted) {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         const SnackBar(
           content: Text('Você já está conectado. Saia da conta para aceitar um convite.'),
