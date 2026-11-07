@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.colli_books_frontend"
+    namespace = "com.colli.books"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -27,6 +27,12 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
 
     buildTypes {
@@ -46,4 +52,12 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.5.1")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation(project(":patrol"))
+    androidTestUtil("androidx.test:orchestrator:1.4.2")
 }
