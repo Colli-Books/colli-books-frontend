@@ -211,7 +211,7 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
     } finally {
       if (mounted) {
         setState(() => _deletingId = null);
-        _controller.load(); // sempre recarrega
+        await _controller.load(); // sempre recarrega
       }
     }
   }

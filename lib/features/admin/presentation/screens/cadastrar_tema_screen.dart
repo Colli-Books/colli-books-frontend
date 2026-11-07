@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../catalogo/data/models/theme_model.dart';
 import '../../../catalogo/data/services/catalog_api_service.dart';
-import '../../../../core/config/app_config.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 
 const _backgroundColor = Color(0xFFF9F5EC);

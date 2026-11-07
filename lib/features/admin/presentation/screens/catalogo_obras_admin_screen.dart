@@ -9,7 +9,6 @@ import '../../../catalogo/data/models/book_models.dart';
 import '../../../catalogo/data/services/catalog_api_service.dart';
 import '../../../catalogo/presentation/controllers/books_controller.dart';
 import '../../../catalogo/presentation/controllers/catalog_options_controller.dart';
-import '../../../../core/config/app_config.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 import 'cadastrar_escolaridade_screen.dart';
@@ -99,7 +98,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
     } finally {
       if (mounted) {
         setState(() => _deleting.remove(book.id));
-        _books.load(); // sempre recarrega: sucesso, "já não existe" ou resultado incerto
+        await _books.load(); // sempre recarrega: sucesso, "já não existe" ou resultado incerto
       }
     }
   }
