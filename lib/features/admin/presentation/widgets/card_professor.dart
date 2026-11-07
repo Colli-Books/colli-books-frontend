@@ -9,7 +9,9 @@ class CardProfessor extends StatelessWidget {
     super.key,
     required this.teacher,
     this.onResendInvite,
+    this.onDelete,
     this.resending = false,
+    this.deleting = false,
   });
 
   final TeacherModel teacher;
@@ -17,6 +19,8 @@ class CardProfessor extends StatelessWidget {
   /// Só é usado para professores com convite pendente.
   final VoidCallback? onResendInvite;
   final bool resending;
+  final VoidCallback? onDelete;
+  final bool deleting;
 
   String get _initials {
     final name = teacher.fullName?.trim() ?? '';
@@ -126,6 +130,14 @@ class CardProfessor extends StatelessWidget {
                   teacher.status.label,
                   style: TextStyle(color: badge.fg, fontSize: 11, fontWeight: FontWeight.bold),
                 ),
+              ),
+              const SizedBox(width: AppSizes.spacingSm),
+              IconButton(
+                key: ValueKey('teacher_delete_${teacher.id}'),
+                tooltip: 'Excluir professor',
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.delete_outline, color: AppColors.danger),
+                onPressed: deleting ? null : onDelete,
               ),
             ],
           ),

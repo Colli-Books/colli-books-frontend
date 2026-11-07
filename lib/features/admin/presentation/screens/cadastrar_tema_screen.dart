@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../catalogo/data/models/theme_model.dart';
 import '../../../catalogo/data/services/catalog_api_service.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/widgets/confirm_dialog.dart';
 
 const _backgroundColor = Color(0xFFF9F5EC);
 const _primaryTextColor = Color(0xFF4A2525);
@@ -113,6 +115,65 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
       _showError('Ocorreu um erro inesperado. Tente novamente.');
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String _mensagemExclusao(String name, int? inUse) {
+    final uso = switch (inUse) {
+      null => 'As obras que usam este tema continuam cadastradas, sem ele.',
+      0 => 'Nenhuma obra usa este tema.',
+      1 => '1 obra usa este tema e continuará cadastrada, sem ele.',
+      final n => '$n obras usam este tema e continuarão cadastradas, sem ele.',
+    };
+    return 'Excluir o tema "$name"?\n\n$uso Esta ação não pode ser desfeita.';
+  }
+
+  Future<void> _excluir(ThemeModel theme) async {
+    if (_saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Conta as obras afetadas com o que já existe: a lista de obras aceita o filtro por tema.
+    int? inUse;
+    try {
+      inUse = (await _service.listBooks(themeId: theme.id)).length;
+    } on ApiException {
+      inUse = null; // sem a contagem, a confirmação usa o texto genérico
+    }
+    if (!mounted) return;
+
+    final ok = await confirmDestructive(
+      context,
+      title: 'Excluir tema',
+      message: _mensagemExclusao(theme.name, inUse),
+    );
+    if (!ok || !mounted) return;
+
+    setState(() => _saving = true);
+    try {
+      await _service.deleteTheme(theme.id);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Tema "${theme.name}" excluído.'),
+          backgroundColor: _buttonGreen,
+        ),
+      );
+    } on ApiException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(deleteErrorMessage(e)), backgroundColor: Colors.red),
+      );
+    } catch (e, st) {
+      debugPrint('Falha inesperada ao excluir tema: $e\n$st');
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+        await _load(showSpinner: false); // sempre recarrega
+      }
     }
   }
 
@@ -291,6 +352,12 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
                         tooltip: 'Renomear',
                         icon: const Icon(Icons.edit_outlined, color: _primaryTextColor),
                         onPressed: _saving ? null : () => _renomear(theme),
+                      ),
+                      IconButton(
+                        key: ValueKey('theme_delete_${theme.id}'),
+                        tooltip: 'Excluir',
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: _saving ? null : () => _excluir(theme),
                       ),
                     ],
                   ),

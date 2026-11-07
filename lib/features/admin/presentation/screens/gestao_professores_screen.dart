@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
+import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../data/models/teacher_model.dart';
 import '../../data/services/admin_api_service.dart';
@@ -21,11 +22,14 @@ enum _Filter {
   inativos('Inativos', TeacherStatus.inactive);
 
   const _Filter(this.label, this.status);
+
   final String label;
   final TeacherStatus? status;
 
-  static _Filter of(TeacherStatus? s) =>
-      _Filter.values.firstWhere((f) => f.status == s, orElse: () => _Filter.todos);
+  static _Filter of(TeacherStatus? s) => _Filter.values.firstWhere(
+    (f) => f.status == s,
+    orElse: () => _Filter.todos,
+  );
 }
 
 class GestaoProfessoresScreen extends StatefulWidget {
@@ -35,7 +39,8 @@ class GestaoProfessoresScreen extends StatefulWidget {
   const GestaoProfessoresScreen({super.key, this.initialFilterStatus});
 
   @override
-  State<GestaoProfessoresScreen> createState() => _GestaoProfessoresScreenState();
+  State<GestaoProfessoresScreen> createState() =>
+      _GestaoProfessoresScreenState();
 }
 
 class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
@@ -44,6 +49,7 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   int? _resendingId; // professor com reenvio de convite em andamento
+  int? _deletingId; // professor com exclusão em andamento
 
   static TeacherStatus? _statusFromLabel(String? label) => switch (label) {
     'Ativo' => TeacherStatus.active,
@@ -74,7 +80,9 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
   Future<void> _convidar() async {
     await Navigator.push<Object?>(
       context,
-      MaterialPageRoute<Object?>(builder: (_) => const ConvidarProfessorScreen()),
+      MaterialPageRoute<Object?>(
+        builder: (_) => const ConvidarProfessorScreen(),
+      ),
     );
     // Recarrega com qualquer resultado: o botão voltar do sistema devolve null.
     if (mounted) await _controller.load();
@@ -88,11 +96,14 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text(
           'Gerar novo convite',
-          style: TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Color(0xFF4A2525),
+            fontWeight: FontWeight.bold,
+          ),
         ),
         content: Text(
           'Será gerado um novo convite para ${teacher.email}. '
-              'O convite anterior deixará de funcionar.',
+          'O convite anterior deixará de funcionar.',
         ),
         actions: [
           TextButton(
@@ -103,7 +114,10 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text(
               'Gerar',
-              style: TextStyle(color: Color(0xFFA1A32D), fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Color(0xFFA1A32D),
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -133,12 +147,13 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
   }
 
   String _resendMessage(ApiException e) => switch (e.code) {
-    'ACCOUNT_ALREADY_ACTIVE' => 'Este professor já ativou a conta. Atualizando a lista.',
+    'ACCOUNT_ALREADY_ACTIVE' =>
+      'Este professor já ativou a conta. Atualizando a lista.',
     'NOT_FOUND' => 'Professor não encontrado. Atualizando a lista.',
     'FORBIDDEN' => 'Você não tem permissão para esta ação.',
     'RATE_LIMITED' => 'Muitas tentativas. Aguarde um instante e tente de novo.',
     _ when e.isNetworkError =>
-    '${e.message} Tentar de novo é seguro, mas invalida qualquer convite gerado antes.',
+      '${e.message} Tentar de novo é seguro, mas invalida qualquer convite gerado antes.',
     _ => e.message,
   };
 
@@ -150,6 +165,55 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
         duration: const Duration(seconds: 5),
       ),
     );
+  }
+
+  Future<void> _excluirProfessor(TeacherModel teacher) async {
+    if (_deletingId != null) return;
+    final pending = teacher.status == TeacherStatus.invitePending;
+
+    final ok = await confirmDestructive(
+      context,
+      title: 'Excluir professor',
+      message: pending
+          ? 'Excluir o convite pendente de ${teacher.email}? O código e o link enviados '
+                'deixam de funcionar. Esta ação não pode ser desfeita.'
+          : 'Excluir ${teacher.displayName} (${teacher.email})? A conta, a Minha Seleção '
+                'e o acesso dele serão apagados. Esta ação não pode ser desfeita.',
+    );
+    if (!ok || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _deletingId = teacher.id);
+    try {
+      await _service.deleteTeacher(teacher.id);
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Professor excluído.'),
+          backgroundColor: Color(0xFFA1A32D),
+        ),
+      );
+    } on ApiException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(deleteErrorMessage(e)),
+          backgroundColor: const Color(0xFFC62828),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (e, st) {
+      debugPrint('Falha inesperada ao excluir professor: $e\n$st');
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
+          backgroundColor: Color(0xFFC62828),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _deletingId = null);
+        _controller.load(); // sempre recarrega
+      }
+    }
   }
 
   // --- UI -------------------------------------------------------------------
@@ -175,21 +239,32 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
             const SizedBox(height: AppSizes.spacingSm),
             const Text(
               'Gerencie acessos e visualize os educadores cadastrados.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: AppSizes.fontSmall),
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: AppSizes.fontSmall,
+              ),
             ),
             const SizedBox(height: AppSizes.spacingLg),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _convidar,
-                icon: const Icon(Icons.person_add_alt_1_outlined, color: Colors.white),
+                icon: const Icon(
+                  Icons.person_add_alt_1_outlined,
+                  color: Colors.white,
+                ),
                 label: const Text(
                   'Convidar Professor',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingMd),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSizes.spacingMd,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSizes.radiusSm),
                   ),
@@ -210,10 +285,14 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
                   TextField(
                     key: const ValueKey('teachers_search'),
                     controller: _searchController,
-                    onChanged: _controller.setQuery, // debounce de 400 ms no controller
+                    onChanged: _controller.setQuery,
+                    // debounce de 400 ms no controller
                     decoration: InputDecoration(
                       hintText: 'Buscar por nome ou e-mail...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSizes.radiusSm),
                         borderSide: const BorderSide(color: AppColors.border),
@@ -265,7 +344,11 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.filter_list, color: AppColors.textPrimary, size: 20),
+                  const Icon(
+                    Icons.filter_list,
+                    color: AppColors.textPrimary,
+                    size: 20,
+                  ),
                   const SizedBox(width: AppSizes.spacingSm),
                   Text(
                     'Filtro: ${current.label}',
@@ -300,7 +383,8 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
     // Lista vazia sem erro é um estado vazio, não uma falha.
     if (_controller.isEmpty) {
       final filtered =
-          _controller.status != null || _searchController.text.trim().isNotEmpty;
+          _controller.status != null ||
+          _searchController.text.trim().isNotEmpty;
       return Padding(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -321,7 +405,8 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_controller.isLoading) const LinearProgressIndicator(minHeight: 2), // atualizando
+        if (_controller.isLoading) const LinearProgressIndicator(minHeight: 2),
+        // atualizando
         const SizedBox(height: AppSizes.spacingSm),
         Text(
           '${items.length} professor(es) encontrado(s)',
@@ -338,6 +423,8 @@ class _GestaoProfessoresScreenState extends State<GestaoProfessoresScreen> {
             teacher: teacher,
             resending: _resendingId == teacher.id,
             onResendInvite: () => _reenviarConvite(teacher),
+            deleting: _deletingId == teacher.id,
+            onDelete: () => _excluirProfessor(teacher),
           ),
       ],
     );

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/network/api_exception.dart';
+import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../catalogo/data/models/education_level_model.dart';
 import '../../../catalogo/data/services/catalog_api_service.dart';
 
@@ -123,6 +124,68 @@ class _CadastrarEscolaridadeScreenState
       _showError('Ocorreu um erro inesperado. Tente novamente.');
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String _mensagemExclusao(String name, int? inUse) {
+    final uso = switch (inUse) {
+      null => 'As obras que usam esta escolaridade continuam cadastradas, sem escolaridade.',
+      0 => 'Nenhuma obra usa esta escolaridade.',
+      1 => '1 obra usa esta escolaridade e continuará cadastrada, sem escolaridade.',
+      final n =>
+        '$n obras usam esta escolaridade e continuarão cadastradas, sem escolaridade.',
+    };
+    return 'Excluir a escolaridade "$name"?\n\n$uso Esta ação não pode ser desfeita.';
+  }
+
+  Future<void> _excluir(EducationLevelModel level) async {
+    if (_saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+
+    int? inUse;
+    try {
+      inUse = (await _service.listBooks(educationLevelId: level.id)).length;
+    } on ApiException {
+      inUse = null;
+    }
+    if (!mounted) return;
+
+    final ok = await confirmDestructive(
+      context,
+      title: 'Excluir escolaridade',
+      message: _mensagemExclusao(level.name, inUse),
+    );
+    if (!ok || !mounted) return;
+
+    setState(() => _saving = true);
+    try {
+      await _service.deleteEducationLevel(level.id);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Escolaridade "${level.name}" excluída.'),
+          backgroundColor: _buttonGreen,
+        ),
+      );
+    } on ApiException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(deleteErrorMessage(e)),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e, st) {
+      debugPrint('Falha inesperada ao excluir escolaridade: $e\n$st');
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+        await _load(showSpinner: false);
+      }
     }
   }
 
@@ -349,6 +412,15 @@ class _CadastrarEscolaridadeScreenState
                           color: _primaryTextColor,
                         ),
                         onPressed: _saving ? null : () => _renomear(level),
+                      ),
+                      IconButton(
+                        key: ValueKey('level_delete_${level.id}'),
+                        tooltip: 'Excluir',
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: _saving ? null : () => _excluir(level),
                       ),
                     ],
                   ),

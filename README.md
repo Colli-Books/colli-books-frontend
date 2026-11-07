@@ -251,16 +251,20 @@ xcrun simctl openurl booted "collibooks://convite?token=SEU_TOKEN"
 | `GET`  | `/api/v1/admin/teachers` | Gestão de professores (busca por nome ou e-mail) |
 | `POST` | `/api/v1/admin/teachers` | Convidar professor |
 | `POST` | `/api/v1/admin/teachers/{id}/invite` | Gerar novo convite para um professor |
+| `DELETE` | `/api/v1/admin/teachers/{id}` | Excluir professor (ativo ou com convite pendente) |
 | `GET`  | `/api/v1/books` | Catálogo com busca e filtros |
 | `GET`  | `/api/v1/books/{id}` | Detalhe da obra e edição |
 | `POST` | `/api/v1/books` | Cadastrar obra (multipart) |
 | `PATCH` | `/api/v1/books/{id}` | Editar obra (multipart) |
+| `DELETE` | `/api/v1/books/{id}` | Excluir obra |
 | `GET`  | `/api/v1/themes` | Temas (filtros e formulário de obra) |
 | `POST` | `/api/v1/themes` | Cadastrar tema |
 | `PATCH` | `/api/v1/themes/{id}` | Renomear tema |
+| `DELETE` | `/api/v1/themes/{id}` | Excluir tema |
 | `GET`  | `/api/v1/education-levels` | Escolaridades (filtros e formulário de obra) |
 | `POST` | `/api/v1/education-levels` | Cadastrar escolaridade |
 | `PATCH` | `/api/v1/education-levels/{id}` | Renomear escolaridade |
+| `DELETE` | `/api/v1/education-levels/{id}` | Excluir escolaridade |
 | `PATCH` | `/api/v1/me` | Editar nome e escola do professor |
 | `GET`  | `/api/v1/me/saved-books` | Minha Seleção |
 | `PUT`  | `/api/v1/me/saved-books/{book_id}` | Salvar obra na seleção |

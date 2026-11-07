@@ -167,4 +167,13 @@ class CatalogApiService {
   Future<void> saveBook(int bookId) => _api.put('/me/saved-books/$bookId');
 
   Future<void> unsaveBook(int bookId) => _api.delete('/me/saved-books/$bookId');
+
+  /// DELETE /books/{id} → 204. A obra sai também da Minha Seleção dos professores.
+  Future<void> deleteBook(int id) => _api.delete('/books/$id');
+
+  /// DELETE /themes/{id} → 204. As obras permanecem, sem o tema.
+  Future<void> deleteTheme(int id) => _api.delete('/themes/$id');
+
+  /// DELETE /education-levels/{id} → 204. As obras permanecem, sem escolaridade.
+  Future<void> deleteEducationLevel(int id) => _api.delete('/education-levels/$id');
 }

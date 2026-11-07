@@ -9,6 +9,9 @@ import '../../../catalogo/data/models/book_models.dart';
 import '../../../catalogo/data/services/catalog_api_service.dart';
 import '../../../catalogo/presentation/controllers/books_controller.dart';
 import '../../../catalogo/presentation/controllers/catalog_options_controller.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/network/api_exception.dart';
+import '../../../../core/widgets/confirm_dialog.dart';
 import 'cadastrar_escolaridade_screen.dart';
 import 'cadastrar_obra_screen.dart';
 import 'cadastrar_tema_screen.dart';
@@ -27,6 +30,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
   late final CatalogOptionsController _options;
 
   final Set<int> _expandedThemes = {}; // ids de obras com a lista de temas expandida
+  final Set<int> _deleting = {}; // obras com exclusão em andamento
 
   @override
   void initState() {
@@ -56,6 +60,48 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
       MaterialPageRoute<Object?>(builder: (_) => screen),
     );
     if (mounted) await _reloadAll();
+  }
+
+  Future<void> _excluirObra(BookSummary book) async {
+    final ok = await confirmDestructive(
+      context,
+      title: 'Excluir obra',
+      message: 'Excluir "${book.title}"? A obra deixa de existir no acervo e sai da '
+          'Minha Seleção dos professores que a salvaram. Esta ação não pode ser desfeita.',
+    );
+    if (!ok || !mounted) return;
+
+    // Capturados antes do await.
+    final service = context.read<CatalogApiService>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _deleting.add(book.id));
+    try {
+      await service.deleteBook(book.id);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Obra "${book.title}" excluída.'),
+          backgroundColor: const Color(0xFFA1A32D),
+        ),
+      );
+    } on ApiException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(deleteErrorMessage(e)), backgroundColor: const Color(0xFFC62828)),
+      );
+    } catch (e, st) {
+      debugPrint('Falha inesperada ao excluir obra: $e\n$st');
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
+          backgroundColor: Color(0xFFC62828),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _deleting.remove(book.id));
+        _books.load(); // sempre recarrega: sucesso, "já não existe" ou resultado incerto
+      }
+    }
   }
 
   // --- Filtros (seleção única) ------------------------------------------------
@@ -136,6 +182,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
   }
 
   // --- UI -------------------------------------------------------------------
+
 
   @override
   Widget build(BuildContext context) {
@@ -455,16 +502,33 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: const Color(0xFFEBE8E0)),
                         ),
-                        child: Tooltip(
-                          message: 'Editar obra',
-                          child: InkWell(
-                            key: ValueKey('book_edit_${book.id}'),
-                            onTap: () => _abrir(EditarObraScreen(bookId: book.id)),
-                            child: const Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Icon(Icons.edit, size: 16, color: Color(0xFF4A2525)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Tooltip(
+                              message: 'Editar obra',
+                              child: InkWell(
+                                key: ValueKey('book_edit_${book.id}'),
+                                onTap: () => _abrir(EditarObraScreen(bookId: book.id)),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2.0),
+                                  child: Icon(Icons.edit, size: 16, color: Color(0xFF4A2525)),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 2),
+                            Tooltip(
+                              message: 'Excluir obra',
+                              child: InkWell(
+                                key: ValueKey('book_delete_${book.id}'),
+                                onTap: _deleting.contains(book.id) ? null : () => _excluirObra(book),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2.0),
+                                  child: Icon(Icons.delete_outline, size: 16, color: Color(0xFFC62828)),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

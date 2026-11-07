@@ -38,4 +38,7 @@ class AdminApiService {
     final json = asJsonMap(await _api.get('/admin/overview'));
     return parseResponse(() => AdminOverviewModel.fromJson(json));
   }
+
+  /// DELETE /admin/teachers/{id} → 204. Vale para professor ativo ou com convite pendente.
+  Future<void> deleteTeacher(int id) => _api.delete('/admin/teachers/$id');
 }
