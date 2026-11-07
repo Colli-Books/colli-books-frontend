@@ -21,7 +21,7 @@ Future<void> _waitFormReady(PatrolIntegrationTester $) async {
 /// Abre a edição de uma obra pelo catálogo do admin: busca pelo título e toca no lápis.
 Future<void> _openEdit(PatrolIntegrationTester $, BookDetail book) async {
   await $.tapText('Catálogo');
-  await $.typeKey('catalog_search', book.title);
+  await $.search('catalog_search', book.title);
   await $.tapKey('book_edit_${book.id}', scroll: true);
   await $.seeText('Edição de Obra');
   await _waitFormReady($);
@@ -151,7 +151,7 @@ void main() {
     expect(detail.themes.map((t) => t.id), [theme.id]);
 
     // E aparece na listagem do admin.
-    await $.typeKey('catalog_search', title);
+    await $.search('catalog_search', title);
     await $.seeKey('book_edit_${detail.id}');
   });
 
@@ -214,7 +214,7 @@ void main() {
     await $.seeText('Nenhuma obra encontrada com esses filtros.');
 
     // ...e o novo aparece.
-    await $.typeKey('catalog_search', newTitle);
+    await $.search('catalog_search', newTitle);
     await $.seeKey('book_edit_${book.id}');
 
     // Também na página da obra e na busca da API.
@@ -406,7 +406,7 @@ void main() {
       await $.tapText('Catálogo');
 
       // Está cadastrada: a busca por nome a acha.
-      await $.typeKey('catalog_search', book.title);
+      await $.search('catalog_search', book.title);
       await $.seeKey('book_edit_${book.id}');
 
       // Mas não aparece quando se filtra por um tema.

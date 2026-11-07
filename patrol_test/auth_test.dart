@@ -50,7 +50,7 @@ void main() {
     await $.seeKey('login_submit');
   });
 
-  patrolTest('US03/US05 — a sessão persiste ao fechar e reabrir o app', ($) async {
+  patrolTest('US03-US05 — a sessão persiste ao fechar e reabrir o app', ($) async {
     final api = await E2eApi.asAdmin();
     final teacher = await api.createActiveTeacher();
 
@@ -67,7 +67,7 @@ void main() {
     await $.seeText('Visão Geral');
   });
 
-  patrolTest('US03/US05 — sem sessão, o app abre no login (rota restrita redireciona)', ($) async {
+  patrolTest('US03-US05 — sem sessão, o app abre no login (rota restrita redireciona)', ($) async {
     await $.launchApp();
     await $.seeKey('login_submit');
     expect($.hasText('Visão Geral'), isFalse);
@@ -75,7 +75,7 @@ void main() {
   });
 
   patrolTest(
-    'US03/US05 — credenciais incorretas: mensagem genérica, sem revelar se o e-mail existe',
+    'US03-US05 — credenciais incorretas: mensagem genérica, sem revelar se o e-mail existe',
         ($) async {
       await $.launchApp();
 
@@ -153,7 +153,7 @@ void main() {
   });
 
   patrolTest(
-    'US04/US06 — redefinição completa pelo link do e-mail; o link vale uma vez só',
+    'US04-US06 — redefinição completa pelo link do e-mail; o link vale uma vez só',
         ($) async {
       final api = await E2eApi.asAdmin();
       final teacher = await api.createActiveTeacher(label: 'reset');

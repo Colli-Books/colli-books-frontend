@@ -11,12 +11,12 @@ const _timeout = Duration(seconds: 20);
 /// Camada única entre os testes e o Patrol.
 ///
 /// Regra do desenho:
-///   - AÇÕES (tap, enterText, scrollTo, openUrl) usam a API do Patrol;
+///   - AÇÕES (tap, enterText, openUrl) usam a API do Patrol (a rolagem usa o framework);
 ///   - ASSERÇÕES e ESPERAS usam só `flutter_test` (`find` + `evaluate()`) e `pump`.
 /// Se uma versão do Patrol mudar um nome, o ajuste é aqui e só aqui.
 ///
 /// Elementos são achados por `ValueKey<String>` (via Symbol, o jeito documentado do Patrol)
-/// ou por texto. As chaves estão em E2E_SETUP.md.
+/// ou por texto.
 extension E2eDriver on PatrolIntegrationTester {
   // ---------------------------------------------------------------------------
   // Ciclo de vida
@@ -100,31 +100,66 @@ extension E2eDriver on PatrolIntegrationTester {
 
   PatrolFinder byKey(String key) => this(Symbol(key));
 
-  /// [scroll]: rola a página até o elemento antes de tocar (use em listas e formulários longos).
-  Future<void> tapText(String text, {bool scroll = false}) async {
-    await seeText(text);
-    final finder = this(text);
-    if (scroll) await finder.scrollTo();
-    await finder.tap();
+  /// Rola, pelo próprio framework, até o widget ficar visível (hit-testable).
+  ///
+  /// Num elemento que existe mas está fora da tela (abaixo da dobra de um scroll), o toque
+  /// do Patrol esgota o tempo ("did not find any visible widgets"). `Scrollable.ensureVisible`
+  /// sobe pela árvore até o scroll mais próximo e o posiciona, sem depender de gestos:
+  /// funciona em celulares e em janelas pequenas do Chrome, e é no-op quando o widget
+  /// não está dentro de nenhum scroll (ex.: botões de diálogo).
+  Future<void> _reveal(Finder finder) async {
+    final elements = finder.evaluate();
+    if (elements.isEmpty) return;
+    await Scrollable.ensureVisible(
+      elements.first,
+      alignment: 0.5,
+      duration: Duration.zero,
+    );
+    await pump(const Duration(milliseconds: 100));
   }
 
-  Future<void> tapKey(String key, {bool scroll = false}) async {
+  /// [scroll] (padrão true): traz o elemento para a tela antes de tocar.
+  Future<void> tapText(String text, {bool scroll = true}) async {
+    await seeText(text);
+    if (scroll) await _reveal(find.text(text));
+    await this(text).tap();
+  }
+
+  Future<void> tapKey(String key, {bool scroll = true}) async {
     await seeKey(key);
-    final finder = byKey(key);
-    if (scroll) await finder.scrollTo();
-    await finder.tap();
+    if (scroll) await _reveal(find.byKey(ValueKey<String>(key)));
+    await byKey(key).tap();
   }
 
   Future<void> tapIcon(IconData icon) async {
     await waitFor(() => find.byIcon(icon).evaluate().isNotEmpty, 'ícone $icon');
+    await _reveal(find.byIcon(icon));
     await this(icon).tap();
   }
 
-  Future<void> typeKey(String key, String text, {bool scroll = false}) async {
+  Future<void> typeKey(String key, String text, {bool scroll = true}) async {
     await seeKey(key);
-    final finder = byKey(key);
-    if (scroll) await finder.scrollTo();
-    await finder.enterText(text);
+    if (scroll) await _reveal(find.byKey(ValueKey<String>(key)));
+    await byKey(key).enterText(text);
+  }
+
+  /// Espera as requisições em andamento terminarem: nenhum indicador de progresso na tela.
+  /// O primeiro `pump` cobre o debounce de 400 ms das buscas.
+  Future<void> waitForLoaded({Duration timeout = _timeout}) async {
+    await pump(const Duration(milliseconds: 500));
+    await waitFor(
+          () =>
+      find.byType(LinearProgressIndicator).evaluate().isEmpty &&
+          find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      'terminar o carregamento',
+      timeout: timeout,
+    );
+  }
+
+  /// Digita num campo de busca e espera o resultado chegar do servidor.
+  Future<void> search(String key, String text) async {
+    await typeKey(key, text);
+    await waitForLoaded();
   }
 
   /// Escolhe um item numa lista dentro de um diálogo (que pode ter mais itens que a tela):
@@ -206,4 +241,3 @@ extension E2eDriver on PatrolIntegrationTester {
 void gapTest(String name, String reason) {
   patrolTest('$name [LACUNA: $reason]', ($) async {}, skip: true);
 }
-

@@ -418,6 +418,7 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
                   _label('Nome completo'),
                   const SizedBox(height: 8),
                   _field(
+                    testKey: 'accept_name',
                     controller: _nameCtrl,
                     icon: Icons.person_outline_rounded,
                     hint: 'Seu nome completo',
@@ -432,6 +433,7 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
                   _label('Escola/Instituição (opcional)'),
                   const SizedBox(height: 8),
                   _field(
+                    testKey: 'accept_school',
                     controller: _schoolCtrl,
                     icon: Icons.school_outlined,
                     hint: 'Nome da sua escola ou instituição',
@@ -441,6 +443,7 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
                   _label('Senha'),
                   const SizedBox(height: 8),
                   _field(
+                    testKey: 'accept_password',
                     controller: _passwordCtrl,
                     icon: Icons.lock_outline,
                     hint: 'Mínimo de 8 caracteres',
@@ -456,6 +459,7 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
                   _label('Confirmar senha'),
                   const SizedBox(height: 8),
                   _field(
+                    testKey: 'accept_confirm',
                     controller: _confirmCtrl,
                     icon: Icons.lock_reset,
                     hint: 'Repita a senha',

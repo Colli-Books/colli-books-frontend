@@ -1,4 +1,5 @@
 import 'package:colli_books_frontend/features/admin/data/models/teacher_model.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
@@ -88,7 +89,7 @@ void main() {
     expect($.hasKey('login_submit'), isTrue);
   });
 
-  patrolTest('US01/US02 — admin gera um novo convite: o anterior deixa de valer', ($) async {
+  patrolTest('US01-US02 — admin gera um novo convite: o anterior deixa de valer', ($) async {
     final api = await E2eApi.asAdmin();
     final email = uniqEmail('reenvio');
     final first = await api.admin.createTeacher(email);
@@ -97,7 +98,7 @@ void main() {
     await $.loginAsAdmin();
     await $.tapText('Professores');
     await $.seeText('Gestão de Professores');
-    await $.typeKey('teachers_search', email);
+    await $.search('teachers_search', email);
 
     // Convite pendente: o cartão traz o botão de reenviar.
     await $.tapKey('teacher_resend_${first.id}', scroll: true);
@@ -176,7 +177,7 @@ void main() {
 
     await $.openDeepLink(invite.inviteLink);
     await $.seeText('Complete seu cadastro');
-  });
+  }, skip: kIsWeb); // o deep link do sistema não existe no Chrome
 
   patrolTest('US02 — convite já utilizado orienta a usar "Esqueci minha senha"', ($) async {
     final api = await E2eApi.asAdmin();

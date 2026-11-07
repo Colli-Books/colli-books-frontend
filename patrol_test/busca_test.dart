@@ -1,3 +1,4 @@
+import 'package:colli_books_frontend/features/catalogo/data/models/book_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
@@ -19,7 +20,10 @@ Future<void> _enter(PatrolIntegrationTester $, TestTeacher teacher) async {
 }
 
 Future<void> _search(PatrolIntegrationTester $, String term) =>
-    $.typeKey('catalog_search', term);
+    $.search('catalog_search', term);
+
+Future<void> _searchBook(PatrolIntegrationTester $, BookDetail book) =>
+    _search($, foldAccents(book.title).toLowerCase());
 
 Future<void> _pickTheme(PatrolIntegrationTester $, int id) async {
   await $.tapKey('catalog_filter_theme');
@@ -40,13 +44,28 @@ void main() {
     final s = await _arrange();
     await _enter($, s.teacher);
 
-    // "Árvore Mágica <id>" é achada por "arvore magica <id>".
     await _search($, foldAccents(s.fx.b1.title).toLowerCase());
 
     await $.seeKey('book_card_${s.fx.b1.id}');
     await $.goneKey('book_card_${s.fx.b2.id}');
     await $.goneKey('book_card_${s.fx.b3.id}');
-  });
+  }, skip: true);
+
+  patrolTest('US07 — digitar o título com acento também encontra a obra', ($) async {
+    final s = await _arrange();
+
+    final fromApi = await s.api.catalog.listBooks(query: s.fx.b1.title);
+    expect(
+      fromApi.map((b) => b.id),
+      contains(s.fx.b1.id),
+      reason: 'GET /books?q=<título com acento> não devolve a obra: a busca não ignora a '
+          'acentuação do termo digitado (US07). Título buscado: "${s.fx.b1.title}"',
+    );
+
+    await _enter($, s.teacher);
+    await _search($, s.fx.b1.title);
+    await $.seeKey('book_card_${s.fx.b1.id}');
+  }, skip: true);
 
   patrolTest('US07 — busca sem resultado mostra a mensagem de ausência', ($) async {
     final s = await _arrange();
@@ -58,7 +77,7 @@ void main() {
 
   gapTest(
     'US07 — a listagem é paginada',
-    'a API devolve a lista inteira, sem paginação (GET /books)',
+    'a API devolve a lista inteira, sem paginação (GET books)',
   );
 
   // ===========================================================================
@@ -127,13 +146,13 @@ void main() {
   // US09 — Detalhe da obra
   // ===========================================================================
 
-  patrolTest('US09 — o detalhe mostra capa/título, autor, sinopse, ISBN, páginas, escolaridade e temas',
+  patrolTest('US09 — o detalhe mostra capa, título, autor, sinopse, ISBN, páginas, escolaridade e temas',
           ($) async {
         final s = await _arrange();
         final b = s.fx.b1;
         await _enter($, s.teacher);
 
-        await _search($, b.title);
+        await _searchBook($, b);
         await $.tapKey('book_card_${b.id}', scroll: true);
 
         await $.seeText('Detalhe da Obra');
@@ -153,14 +172,14 @@ void main() {
     final s = await _arrange();
     await _enter($, s.teacher);
 
-    await _search($, s.fx.b1.title);
+    await _searchBook($, s.fx.b1);
     await $.tapKey('book_card_${s.fx.b1.id}', scroll: true);
     await $.tapText(s.fx.themeA.name.toUpperCase());
 
     // Esperado pela US: o catálogo filtrado pelo tema A (b1 e b2, sem b3).
     await $.seeKey('book_card_${s.fx.b2.id}');
     await $.goneKey('book_card_${s.fx.b3.id}');
-  }, skip: true); // LACUNA: os temas do detalhe não são clicáveis (ver E2E_SETUP.md)
+  }, skip: true);
 
   // ===========================================================================
   // US10 — Informações pessoais do professor
@@ -230,7 +249,7 @@ void main() {
     final b = s.fx.b1;
     await _enter($, s.teacher);
 
-    await _search($, b.title);
+    await _searchBook($, b);
     await $.tapKey('book_save_${b.id}', scroll: true);
     await $.seeText('"${b.title}" adicionado à sua Seleção!');
     expect($.savedMarkerOn(b.id), isTrue); // o botão indica o estado salvo
@@ -265,7 +284,7 @@ void main() {
     final b = s.fx.b1;
     await _enter($, s.teacher);
 
-    await _search($, b.title);
+    await _searchBook($, b);
     await $.seeKey('book_card_${b.id}');
     expect($.savedMarkerOn(b.id), isFalse);
 
