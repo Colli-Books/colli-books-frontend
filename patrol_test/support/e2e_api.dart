@@ -11,13 +11,6 @@ import 'package:colli_books_frontend/features/catalogo/data/services/catalog_api
 
 import 'e2e_env.dart';
 
-// ---------------------------------------------------------------------------
-// Dados únicos por execução
-//
-// A API não tem DELETE: o que os testes criam FICA no banco. Por isso todo nome,
-// e-mail e ISBN leva um sufixo único, e o ideal é um banco de TESTE recriado a cada execução.
-// ---------------------------------------------------------------------------
-
 final String _runId = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
 int _seq = 0;
 
@@ -155,6 +148,22 @@ class E2eApi {
   Future<void> saveBookFor(TestTeacher teacher, int bookId) async {
     final api = await _loginClient(teacher.email, teacher.password);
     await CatalogApiService(api).saveBook(bookId);
+  }
+
+  /// Ids da Minha Seleção do professor (login próprio, sem tocar o app).
+  Future<List<int>> savedBookIdsOf(TestTeacher teacher) async {
+    final api = await _loginClient(teacher.email, teacher.password);
+    return [for (final b in await CatalogApiService(api).listSavedBooks()) b.id];
+  }
+
+  /// Erro ao ler a obra (`NOT_FOUND` = foi excluída), ou null se ela ainda existe.
+  Future<ApiException?> bookError(int id) async {
+    try {
+      await catalog.getBook(id);
+      return null;
+    } on ApiException catch (e) {
+      return e;
+    }
   }
 
   // --- Catálogo ------------------------------------------------------------
