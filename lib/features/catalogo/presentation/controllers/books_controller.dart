@@ -18,8 +18,8 @@ class BooksController extends ChangeNotifier {
   bool _loading = false;
   ApiException? _error;
   String _query = '';
-  int? _themeId;
-  int? _levelId;
+  Set<int> _themeIds = const {};
+  Set<int> _levelIds = const {};
   BookSort _sort = BookSort.relevance;
   Timer? _debounce;
   int _requestId = 0;
@@ -28,10 +28,13 @@ class BooksController extends ChangeNotifier {
   List<BookSummary> get items => _items;
   bool get isLoading => _loading;
   ApiException? get error => _error;
-  int? get themeId => _themeId;
-  int? get levelId => _levelId;
+  /// Filtro por temas: a obra entra se tiver qualquer um deles. Vazio = todos.
+  Set<int> get themeIds => _themeIds;
+
+  /// Filtro por escolaridades: a obra entra se tiver qualquer uma. Vazio = todas.
+  Set<int> get levelIds => _levelIds;
   BookSort get sort => _sort;
-  bool get hasFilters => _query.isNotEmpty || _themeId != null || _levelId != null;
+  bool get hasFilters => _query.isNotEmpty || _themeIds.isNotEmpty || _levelIds.isNotEmpty;
 
   /// Lista vazia sem erro: o app mostra "nenhuma obra encontrada" (não é erro).
   bool get isEmpty => !_loading && _error == null && _items.isEmpty;
@@ -45,8 +48,8 @@ class BooksController extends ChangeNotifier {
     try {
       final list = await _service.listBooks(
         query: _query,
-        themeId: _themeId,
-        educationLevelId: _levelId,
+        themeIds: _themeIds,
+        educationLevelIds: _levelIds,
         sort: _sort,
       );
       if (id != _requestId) return;
@@ -74,15 +77,15 @@ class BooksController extends ChangeNotifier {
     _debounce = Timer(const Duration(milliseconds: 400), load);
   }
 
-  void setTheme(int? id) {
-    if (id == _themeId) return;
-    _themeId = id;
+  void setThemes(Set<int> ids) {
+    if (setEquals(ids, _themeIds)) return;
+    _themeIds = Set.unmodifiable(ids);
     load();
   }
 
-  void setLevel(int? id) {
-    if (id == _levelId) return;
-    _levelId = id;
+  void setLevels(Set<int> ids) {
+    if (setEquals(ids, _levelIds)) return;
+    _levelIds = Set.unmodifiable(ids);
     load();
   }
 

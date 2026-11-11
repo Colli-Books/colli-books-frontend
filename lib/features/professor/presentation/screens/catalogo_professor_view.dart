@@ -50,9 +50,9 @@ class _CatalogoProfessorViewState extends State<CatalogoProfessorView> {
       allLabel: 'Todas as escolaridades',
       emptyMessage: 'Nenhuma escolaridade cadastrada.',
       options: [for (final l in _options.levels) (id: l.id, name: l.name)],
-      selectedId: _books.levelId,
+      selectedId: _books.levelIds.firstOrNull,
     );
-    if (r != null) _books.setLevel(r.id);
+    if (r != null) _books.setLevels({?r.id});
   }
 
   Future<void> _filtrarTema() async {
@@ -62,9 +62,9 @@ class _CatalogoProfessorViewState extends State<CatalogoProfessorView> {
       allLabel: 'Todos os temas',
       emptyMessage: 'Nenhum tema cadastrado.',
       options: [for (final t in _options.themes) (id: t.id, name: t.name)],
-      selectedId: _books.themeId,
+      selectedId: _books.themeIds.firstOrNull,
     );
-    if (r != null) _books.setTheme(r.id);
+    if (r != null) _books.setThemes({?r.id});
   }
 
   @override
@@ -128,9 +128,9 @@ class _CatalogoProfessorViewState extends State<CatalogoProfessorView> {
   Widget _buildFilters() {
     final ready = !_options.isLoading && _options.error == null;
     final levelName =
-        _options.levels.where((l) => l.id == _books.levelId).map((l) => l.name).firstOrNull;
+        _options.levels.where((l) => _books.levelIds.contains(l.id)).map((l) => l.name).firstOrNull;
     final themeName =
-        _options.themes.where((t) => t.id == _books.themeId).map((t) => t.name).firstOrNull;
+        _options.themes.where((t) => _books.themeIds.contains(t.id)).map((t) => t.name).firstOrNull;
 
     return Row(
       children: [
@@ -223,7 +223,7 @@ class _CatalogoProfessorViewState extends State<CatalogoProfessorView> {
             return ObraListCard(
               key: ValueKey(book.id),
               book: book,
-              highlightThemeId: _books.themeId,
+              highlightThemeId: _books.themeIds.firstOrNull,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(builder: (_) => DetalhesObraScreen(bookId: book.id)),

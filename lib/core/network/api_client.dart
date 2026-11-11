@@ -52,9 +52,15 @@ class ApiClient {
 
     if (queryParameters == null || queryParameters.isEmpty) return uri;
 
-    final queryMap = <String, String>{};
+    // Lista vira parâmetro repetido (`theme_ids=1&theme_ids=2`); lista vazia é omitida.
+    final queryMap = <String, dynamic>{};
     queryParameters.forEach((key, value) {
-      if (value != null) queryMap[key] = value.toString();
+      if (value is Iterable) {
+        final values = [for (final v in value) if (v != null) v.toString()];
+        if (values.isNotEmpty) queryMap[key] = values;
+      } else if (value != null) {
+        queryMap[key] = value.toString();
+      }
     });
     return uri.replace(queryParameters: queryMap);
   }
