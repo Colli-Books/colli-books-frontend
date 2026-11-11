@@ -9,9 +9,11 @@
       <dict>
         <key>CFBundleTypeRole</key>
         <string>Editor</string>
+        <key>CFBundleURLName</key>
+        <string>com.colli.books</string>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>Colli Books</string>
+          <string>collibooks</string>
         </array>
       </dict>
     </array>
