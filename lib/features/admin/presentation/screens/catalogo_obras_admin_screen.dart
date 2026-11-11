@@ -5,6 +5,7 @@ import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/sizes.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/fullscreen_image_viewer.dart';
+import '../../../../core/widgets/pick_many_dialog.dart';
 import '../../../catalogo/data/models/book_models.dart';
 import '../../../catalogo/data/services/catalog_api_service.dart';
 import '../../../catalogo/presentation/controllers/books_controller.dart';
@@ -103,81 +104,36 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
     }
   }
 
-  // --- Filtros (seleção única) ------------------------------------------------
+  // --- Filtros (seleção múltipla) -----------------------------------------
+  // Vários temas: a obra entra se tiver qualquer um deles (idem escolaridades).
 
-  Future<void> _filtrarEscolaridade() async {
-    final result = await _pickOne(
-      title: 'Filtrar por Escolaridade',
-      allLabel: 'Todas as escolaridades',
+  Future<void> _filtrarEscolaridades() async {
+    final result = await showPickManyDialog(
+      context,
+      title: 'Filtrar por Escolaridades',
       emptyMessage: 'Nenhuma escolaridade cadastrada.',
       options: [for (final l in _options.levels) (id: l.id, name: l.name)],
-      selectedId: _books.levelId,
+      selectedIds: _books.levelIds,
     );
-    if (result != null) _books.setLevel(result.id);
+    if (result != null) _books.setLevels(result);
   }
 
-  Future<void> _filtrarTema() async {
-    final result = await _pickOne(
-      title: 'Filtrar por Tema',
-      allLabel: 'Todos os temas',
+  Future<void> _filtrarTemas() async {
+    final result = await showPickManyDialog(
+      context,
+      title: 'Filtrar por Temas',
       emptyMessage: 'Nenhum tema cadastrado.',
       options: [for (final t in _options.themes) (id: t.id, name: t.name)],
-      selectedId: _books.themeId,
+      selectedIds: _books.themeIds,
     );
-    if (result != null) _books.setTheme(result.id);
+    if (result != null) _books.setThemes(result);
   }
 
-  /// Devolve null se o usuário cancelou, e `(id: null)` se escolheu "todos".
-  Future<({int? id})?> _pickOne({
-    required String title,
-    required String allLabel,
-    required String emptyMessage,
-    required List<({int id, String name})> options,
-    required int? selectedId,
-  }) {
-    return showDialog<({int? id})>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFFF9F5EC),
-        title: Text(
-          title,
-          style: const TextStyle(color: Color(0xFF4A2525), fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: options.isEmpty
-              ? Text(emptyMessage)
-              : ListView(
-            shrinkWrap: true,
-            children: [
-              ListTile(
-                key: const ValueKey('pick_option_all'),
-                title: Text(allLabel, style: const TextStyle(color: Color(0xFF6B6B6B))),
-                trailing: selectedId == null
-                    ? const Icon(Icons.check, color: Color(0xFFA1A32D))
-                    : null,
-                onTap: () => Navigator.pop(dialogContext, (id: null)),
-              ),
-              for (final o in options)
-                ListTile(
-                  key: ValueKey('pick_option_${o.id}'),
-                  title: Text(o.name, style: const TextStyle(color: Color(0xFF4A2525))),
-                  trailing: o.id == selectedId
-                      ? const Icon(Icons.check, color: Color(0xFFA1A32D))
-                      : null,
-                  onTap: () => Navigator.pop(dialogContext, (id: o.id)),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-          ),
-        ],
-      ),
-    );
+  /// "Temas" sem filtro, o nome quando há um só, "3 temas" quando há vários.
+  String? _filterLabel(Iterable<({int id, String name})> options, Set<int> ids, String plural) {
+    final names = [for (final o in options) if (ids.contains(o.id)) o.name];
+    if (names.isEmpty) return null;
+    return names.length == 1 ? names.single : '${names.length} $plural';
   }
 
   // --- UI -------------------------------------------------------------------
@@ -283,10 +239,16 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
 
   Widget _buildFilters() {
     final ready = !_options.isLoading && _options.error == null;
-    final levelName =
-        _options.levels.where((l) => l.id == _books.levelId).map((l) => l.name).firstOrNull;
-    final themeName =
-        _options.themes.where((t) => t.id == _books.themeId).map((t) => t.name).firstOrNull;
+    final levelName = _filterLabel(
+      [for (final l in _options.levels) (id: l.id, name: l.name)],
+      _books.levelIds,
+      'escolaridades',
+    );
+    final themeName = _filterLabel(
+      [for (final t in _options.themes) (id: t.id, name: t.name)],
+      _books.themeIds,
+      'temas',
+    );
 
     return Row(
       children: [
@@ -294,7 +256,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
           child: _filterButton(
             label: levelName ?? 'Escolaridades',
             active: levelName != null,
-            onPressed: ready ? _filtrarEscolaridade : null,
+            onPressed: ready ? _filtrarEscolaridades : null,
             key: const ValueKey('catalog_filter_level')
           ),
         ),
@@ -303,7 +265,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
           child: _filterButton(
             label: themeName ?? 'Temas',
             active: themeName != null,
-            onPressed: ready ? _filtrarTema : null,
+            onPressed: ready ? _filtrarTemas : null,
             key: const ValueKey('catalog_filter_theme')
           ),
         ),
@@ -459,7 +421,7 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
   }
 
   Widget _buildBookCard(BookSummary book) {
-    final level = book.educationLevel;
+    final levels = book.educationLevels;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSizes.spacingMd),
@@ -544,21 +506,28 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
-                  if (level != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD4E6F1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        level.name,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Color(0xFF1F618D),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  if (levels.isNotEmpty) ...[
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final level in levels)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD4E6F1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              level.name,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF1F618D),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                   ],
@@ -576,9 +545,9 @@ class _CatalogoObrasAdminScreenState extends State<CatalogoObrasAdminScreen> {
     final themes = book.themes;
     final isExpanded = _expandedThemes.contains(book.id);
 
-    // Tema filtrado que não está entre os 4 primeiros continua visível.
-    final filterId = _books.themeId;
-    final extraMatches = themes.skip(4).where((t) => t.id == filterId).toList();
+    // Temas filtrados que não estão entre os 4 primeiros continuam visíveis.
+    final filterIds = _books.themeIds;
+    final extraMatches = themes.skip(4).where((t) => filterIds.contains(t.id)).toList();
 
     final displayed = isExpanded ? themes : [...themes.take(4), ...extraMatches];
     final remaining = themes.length - displayed.length;

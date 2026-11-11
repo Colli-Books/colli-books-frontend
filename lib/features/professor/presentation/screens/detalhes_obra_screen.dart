@@ -178,7 +178,7 @@ class _DetalhesObraScreenState extends State<DetalhesObraScreen> {
     final hasMaterial = _safeHttpUri(book.pedagogicalMaterialUrl) != null;
 
     final tags = <String>[
-      if (book.educationLevel != null) book.educationLevel!.name,
+      for (final l in book.educationLevels) l.name,
       for (final t in book.themes) t.name,
     ];
 

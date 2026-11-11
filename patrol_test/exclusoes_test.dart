@@ -100,7 +100,7 @@ void main() {
 
     expect((await api.catalog.listEducationLevels()).any((l) => l.id == level.id), isFalse);
     final detail = await api.catalog.getBook(book.id);
-    expect(detail.educationLevel, isNull);
+    expect(detail.educationLevels, isEmpty);
   });
 
   // ===========================================================================

@@ -133,7 +133,8 @@ void main() {
 
     await _waitFormReady($);
     await $.tapKey('book_picker_level', scroll: true);
-    await $.tapInList('level_option_${level.id}');
+    await $.tapInList('pick_many_option_${level.id}');
+    await $.tapKey('pick_many_apply');
     await $.tapKey('book_picker_themes', scroll: true);
     await $.tapInList('theme_option_${theme.id}');
     await $.tapText('Aplicar');
@@ -147,7 +148,7 @@ void main() {
     expect(detail.author, 'Autor E2E');
     expect(detail.synopsis, 'Sinopse da obra de teste');
     expect(digitsOnly(detail.isbn ?? ''), isbn);
-    expect(detail.educationLevel?.id, level.id);
+    expect(detail.educationLevels.map((l) => l.id), [level.id]);
     expect(detail.themes.map((t) => t.id), [theme.id]);
 
     // E aparece na listagem do admin.
@@ -330,8 +331,7 @@ void main() {
     await $.seeText('Escolaridade renomeada para "$newName".');
 
     final detail = await api.catalog.getBook(book.id);
-    expect(detail.educationLevel?.id, level.id);
-    expect(detail.educationLevel?.name, newName);
+    expect(detail.educationLevels.map((l) => (l.id, l.name)), [(level.id, newName)]);
   });
 
   gapTest(
@@ -344,38 +344,43 @@ void main() {
   // ===========================================================================
 
   patrolTest(
-    'US17 — vincula vários temas e uma escolaridade; remover um vínculo mantém os demais',
+    'US17 — vincula vários temas e várias escolaridades; remover um vínculo mantém os demais',
         ($) async {
       final api = await E2eApi.asAdmin();
       final themeA = await api.theme('Tema A');
       final themeB = await api.theme('Tema B');
       final level = await api.level('Nivel');
+      final level2 = await api.level('Nivel 2');
       final book = await api.book(); // sem nenhum vínculo
 
       await $.launchApp();
       await $.loginAsAdmin();
 
-      // 1) Vincula os dois temas e a escolaridade.
+      // 1) Vincula os dois temas e as duas escolaridades.
       await _openEdit($, book);
       await $.tapKey('book_picker_themes', scroll: true);
       await $.tapInList('theme_option_${themeA.id}');
       await $.tapInList('theme_option_${themeB.id}');
       await $.tapText('Aplicar');
       await $.tapKey('book_picker_level', scroll: true);
-      await $.tapInList('level_option_${level.id}');
+      await $.tapInList('pick_many_option_${level.id}');
+      await $.tapInList('pick_many_option_${level2.id}');
+      await $.tapKey('pick_many_apply');
       await _saveEdit($);
 
       var detail = await api.catalog.getBook(book.id);
       expect(detail.themes.map((t) => t.id).toSet(), {themeA.id, themeB.id});
-      expect(detail.educationLevel?.id, level.id);
-      // A obra consta na busca de cada tema e da escolaridade.
+      expect(detail.educationLevels.map((l) => l.id).toSet(), {level.id, level2.id});
+      // A obra consta na busca de cada tema e de cada escolaridade.
       for (final themeId in [themeA.id, themeB.id]) {
-        expect((await api.catalog.listBooks(themeId: themeId)).map((b) => b.id), contains(book.id));
+        expect((await api.catalog.listBooks(themeIds: [themeId])).map((b) => b.id), contains(book.id));
       }
-      expect(
-        (await api.catalog.listBooks(educationLevelId: level.id)).map((b) => b.id),
-        contains(book.id),
-      );
+      for (final levelId in [level.id, level2.id]) {
+        expect(
+          (await api.catalog.listBooks(educationLevelIds: [levelId])).map((b) => b.id),
+          contains(book.id),
+        );
+      }
 
       // 2) Remove o vínculo com o tema A: some dali, permanece no B.
       await _openEdit($, book);
@@ -387,10 +392,10 @@ void main() {
       detail = await api.catalog.getBook(book.id);
       expect(detail.themes.map((t) => t.id), [themeB.id]);
       expect(
-        (await api.catalog.listBooks(themeId: themeA.id)).map((b) => b.id),
+        (await api.catalog.listBooks(themeIds: [themeA.id])).map((b) => b.id),
         isNot(contains(book.id)),
       );
-      expect((await api.catalog.listBooks(themeId: themeB.id)).map((b) => b.id), contains(book.id));
+      expect((await api.catalog.listBooks(themeIds: [themeB.id])).map((b) => b.id), contains(book.id));
     },
   );
 
@@ -411,7 +416,8 @@ void main() {
 
       // Mas não aparece quando se filtra por um tema.
       await $.tapKey('catalog_filter_theme');
-      await $.tapInList('pick_option_${theme.id}');
+      await $.tapInList('pick_many_option_${theme.id}');
+      await $.tapKey('pick_many_apply');
       await $.goneKey('book_edit_${book.id}');
     },
   );

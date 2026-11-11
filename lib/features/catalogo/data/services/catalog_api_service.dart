@@ -15,17 +15,19 @@ class CatalogApiService {
   // --- Obras ---------------------------------------------------------------
 
   /// GET /books: lista completa (sem paginação). Cada item já traz `is_saved`.
+  /// Vários temas: a obra entra se tiver qualquer um deles (idem escolaridades);
+  /// temas e escolaridades juntos: precisa atender os dois filtros.
   Future<List<BookSummary>> listBooks({
     String? query,
-    int? themeId,
-    int? educationLevelId,
+    Iterable<int> themeIds = const [],
+    Iterable<int> educationLevelIds = const [],
     BookSort sort = BookSort.relevance,
   }) async {
     final q = query?.trim() ?? '';
     final raw = await _api.get('/books', queryParameters: {
       'q': q.isEmpty ? null : q,
-      'theme_id': themeId,
-      'education_level_id': educationLevelId,
+      'theme_ids': themeIds,
+      'education_level_ids': educationLevelIds,
       'sort': sort.name,
     });
     return parseResponse(() => [
@@ -50,7 +52,7 @@ class CatalogApiService {
         'author': f.author.trim(),
         ..._optionalFields(f, sendEmpty: false),
       },
-      repeated: f.themeIds.isEmpty ? const {} : {'theme_ids': [for (final id in f.themeIds) '$id']},
+      repeated: _repeatedIds(f),
       coverBytes: f.coverBytes,
       coverFilename: f.coverFilename,
     ));
@@ -58,7 +60,7 @@ class CatalogApiService {
   }
 
   /// PATCH /books/{id} (multipart). Envia o formulário inteiro:
-  /// vazio = limpar, `theme_ids=` vazio = remover todos os temas,
+  /// vazio = limpar, `theme_ids=` / `education_level_ids=` vazio = remover todos,
   /// capa só se houver arquivo novo.
   Future<BookDetail> updateBook(int id, BookForm f) async {
     final json = asJsonMap(await _api.sendMultipart(
@@ -69,13 +71,21 @@ class CatalogApiService {
         'author': f.author.trim(),
         ..._optionalFields(f, sendEmpty: true),
         if (f.themeIds.isEmpty) 'theme_ids': '',
+        if (f.educationLevelIds.isEmpty) 'education_level_ids': '',
       },
-      repeated: f.themeIds.isEmpty ? const {} : {'theme_ids': [for (final i in f.themeIds) '$i']},
+      repeated: _repeatedIds(f),
       coverBytes: f.coverBytes,
       coverFilename: f.coverFilename,
     ));
     return parseResponse(() => BookDetail.fromJson(json));
   }
+
+  /// Listas não vazias vão como campo repetido (`theme_ids=6&theme_ids=8`).
+  Map<String, List<String>> _repeatedIds(BookForm f) => {
+    if (f.themeIds.isNotEmpty) 'theme_ids': [for (final id in f.themeIds) '$id'],
+    if (f.educationLevelIds.isNotEmpty)
+      'education_level_ids': [for (final id in f.educationLevelIds) '$id'],
+  };
 
   Map<String, String> _optionalFields(BookForm f, {required bool sendEmpty}) {
     final raw = <String, String?>{
@@ -87,7 +97,6 @@ class CatalogApiService {
       'store_url': f.storeUrl,
       'book_url': f.bookUrl,
       'pedagogical_material_url': f.pedagogicalMaterialUrl,
-      'education_level_id': f.educationLevelId?.toString(),
     };
     final out = <String, String>{};
     raw.forEach((key, value) {

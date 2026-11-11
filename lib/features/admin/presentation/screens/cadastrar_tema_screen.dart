@@ -134,7 +134,7 @@ class _CadastrarTemaScreenState extends State<CadastrarTemaScreen> {
     // Conta as obras afetadas com o que já existe: a lista de obras aceita o filtro por tema.
     int? inUse;
     try {
-      inUse = (await _service.listBooks(themeId: theme.id)).length;
+      inUse = (await _service.listBooks(themeIds: [theme.id])).length;
     } on ApiException {
       inUse = null; // sem a contagem, a confirmação usa o texto genérico
     }

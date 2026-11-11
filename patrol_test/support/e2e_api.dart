@@ -182,6 +182,7 @@ class E2eApi {
     int? pageCount,
     int? year,
     int? levelId,
+    List<int> levelIds = const [],
     List<int> themeIds = const [],
     String? storeUrl,
   }) {
@@ -192,7 +193,7 @@ class E2eApi {
       synopsis: synopsis,
       pageCount: pageCount,
       year: year,
-      educationLevelId: levelId,
+      educationLevelIds: [?levelId, ...levelIds],
       themeIds: themeIds,
       storeUrl: storeUrl,
     ));

@@ -8,6 +8,7 @@ import '../../../../core/utils/image_sniffer.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/fullscreen_image_viewer.dart';
+import '../../../../core/widgets/pick_many_dialog.dart';
 import '../../../catalogo/data/models/book_form.dart';
 import '../../../catalogo/data/models/book_models.dart';
 import '../../../catalogo/data/models/education_level_model.dart';
@@ -75,7 +76,7 @@ class _BookFormViewState extends State<BookFormView> {
     'store_url',
     'book_url',
     'pedagogical_material_url',
-    'education_level_id',
+    'education_level_ids',
     'theme_ids',
     'cover',
   };
@@ -91,7 +92,7 @@ class _BookFormViewState extends State<BookFormView> {
   late final CatalogApiService _service;
   late final CatalogOptionsController _options;
 
-  EducationLevelModel? _selectedLevel;
+  List<EducationLevelModel> _selectedLevels = [];
   List<ThemeModel> _selectedThemes = [];
 
   /// Capa NOVA escolhida pelo usuário (null = não trocar / não enviar).
@@ -124,7 +125,7 @@ class _BookFormViewState extends State<BookFormView> {
     _bookUrlController = TextEditingController(text: i?.bookUrl ?? '');
     _storeUrlController = TextEditingController(text: i?.storeUrl ?? '');
     _lpUrlController = TextEditingController(text: i?.pedagogicalMaterialUrl ?? '');
-    _selectedLevel = i?.educationLevel;
+    _selectedLevels = List<EducationLevelModel>.of(i?.educationLevels ?? const []);
     _selectedThemes = List<ThemeModel>.of(i?.themes ?? const []);
     _existingCoverUrl = i?.coverUri;
 
@@ -173,7 +174,7 @@ class _BookFormViewState extends State<BookFormView> {
       pageCount: i?.pageCount,
       edition: i?.edition,
       year: i?.year,
-      educationLevelId: _selectedLevel?.id,
+      educationLevelIds: [for (final l in _selectedLevels) l.id],
       themeIds: [for (final t in _selectedThemes) t.id],
       coverBytes: _coverBytes,
       coverFilename: _coverFilename,
@@ -423,51 +424,21 @@ class _BookFormViewState extends State<BookFormView> {
     );
   }
 
-  // --- Escolaridade (única) e temas (múltiplos) -------------------------------
+  // --- Escolaridades e temas (múltiplos) -------------------------------------
 
-  Future<void> _pickLevel() async {
-    final levels = _options.levels;
-    final result = await showDialog<({EducationLevelModel? level})>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFFF9F5EC),
-        title: const Text(
-          'Selecionar Escolaridade',
-          style: TextStyle(color: _primaryTextColor, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              ListTile(
-                key: const ValueKey('level_option_none'),
-                title: const Text('Sem escolaridade', style: TextStyle(color: _secondaryTextColor)),
-                trailing: _selectedLevel == null ? const Icon(Icons.check, color: _buttonGreen) : null,
-                onTap: () => Navigator.pop(dialogContext, (level: null)),
-              ),
-              for (final l in levels)
-                ListTile(
-                  key: ValueKey('level_option_${l.id}'),
-                  title: Text(l.name, style: const TextStyle(color: _primaryTextColor)),
-                  trailing: l.id == _selectedLevel?.id ? const Icon(Icons.check, color: _buttonGreen) : null,
-                  onTap: () => Navigator.pop(dialogContext, (level: l)),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-          ),
-        ],
-      ),
+  Future<void> _pickLevels() async {
+    final all = _options.levels;
+    final result = await showPickManyDialog(
+      context,
+      title: 'Selecionar Escolaridades',
+      emptyMessage: 'Nenhuma escolaridade cadastrada ainda. Cadastre escolaridades primeiro.',
+      options: [for (final l in all) (id: l.id, name: l.name)],
+      selectedIds: {for (final l in _selectedLevels) l.id},
     );
     if (!mounted || result == null) return;
     setState(() {
-      _selectedLevel = result.level;
-      _fieldErrors.remove('education_level_id');
+      _selectedLevels = [for (final l in all) if (result.contains(l.id)) l];
+      _fieldErrors.remove('education_level_ids');
     });
   }
 
@@ -865,19 +836,38 @@ class _BookFormViewState extends State<BookFormView> {
                 onRetry: _options.load,
                 margin: const EdgeInsets.only(bottom: 14),
               ),
-            _label('Escolaridade'),
+            _label('Escolaridades'),
             const SizedBox(height: 8),
             _pickerField(
               fieldKey: const ValueKey('book_picker_level'),
               icon: Icons.school_outlined,
-              placeholder: loading ? 'Carregando escolaridades...' : 'Selecione a escolaridade...',
-              selectedText: _selectedLevel?.name,
+              placeholder: loading ? 'Carregando escolaridades...' : 'Selecione as escolaridades...',
+              selectedText: _selectedLevels.isEmpty ? null : '${_selectedLevels.length} selecionada(s)',
               badgeBg: const Color(0xFFD4E6F1),
               badgeFg: const Color(0xFF1B4F72),
-              onTap: ready ? _pickLevel : null,
+              onTap: ready ? _pickLevels : null,
             ),
-            if (_fieldErrors['education_level_id'] != null)
-              _FieldErrorText(_fieldErrors['education_level_id']!),
+            if (_selectedLevels.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final l in _selectedLevels)
+                    _chip(
+                      label: l.name,
+                      icon: Icons.school_rounded,
+                      bg: const Color(0xFFEAF2F8),
+                      border: const Color(0xFFAED6F1),
+                      fg: const Color(0xFF1B4F72),
+                      closeBg: const Color(0xFFD4E6F1),
+                      onRemove: () => setState(() => _selectedLevels.remove(l)),
+                    ),
+                ],
+              ),
+            ],
+            if (_fieldErrors['education_level_ids'] != null)
+              _FieldErrorText(_fieldErrors['education_level_ids']!),
             const SizedBox(height: 20),
             _label('Temas Abordados'),
             const SizedBox(height: 8),

@@ -133,21 +133,28 @@ class _ObraListCardState extends State<ObraListCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 12),
-                    if (book.educationLevel != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD4E6F1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          book.educationLevel!.name,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFF1F618D),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    if (book.educationLevels.isNotEmpty) ...[
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final level in book.educationLevels)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD4E6F1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                level.name,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF1F618D),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 6),
                     ],

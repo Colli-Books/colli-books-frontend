@@ -144,7 +144,7 @@ class _CadastrarEscolaridadeScreenState
 
     int? inUse;
     try {
-      inUse = (await _service.listBooks(educationLevelId: level.id)).length;
+      inUse = (await _service.listBooks(educationLevelIds: [level.id])).length;
     } on ApiException {
       inUse = null;
     }

@@ -12,7 +12,7 @@ class BookSummary {
     required this.themes,
     this.coverUrl,
     this.year,
-    this.educationLevel,
+    this.educationLevels = const [],
     this.isSaved = false,
   });
 
@@ -21,7 +21,7 @@ class BookSummary {
   final String author;
   final String? coverUrl; // relativo; use coverUri para exibir
   final int? year;
-  final EducationLevelModel? educationLevel; // uma escolaridade por obra, ou null
+  final List<EducationLevelModel> educationLevels; // na ordem pedagógica; pode ser vazia
   final List<ThemeModel> themes;
   final bool isSaved;
 
@@ -33,14 +33,23 @@ class BookSummary {
     author: json['author'] as String,
     coverUrl: json['cover_url'] as String?,
     year: json['year'] as int?,
-    educationLevel: json['education_level'] == null
-        ? null
-        : EducationLevelModel.fromJson(json['education_level'] as Map<String, dynamic>),
+    educationLevels: _parseLevels(json),
     themes: [
       for (final t in json['themes'] as List) ThemeModel.fromJson(t as Map<String, dynamic>),
     ],
     isSaved: (json['is_saved'] as bool?) ?? false,
   );
+}
+
+/// `education_levels` é o contrato atual; `education_level` (uma só) vem de
+/// backends anteriores à obra com várias escolaridades.
+List<EducationLevelModel> _parseLevels(Map<String, dynamic> json) {
+  final list = json['education_levels'];
+  if (list is List) {
+    return [for (final e in list) EducationLevelModel.fromJson(e as Map<String, dynamic>)];
+  }
+  final single = json['education_level'];
+  return single is Map<String, dynamic> ? [EducationLevelModel.fromJson(single)] : const [];
 }
 
 /// Detalhe completo (GET /books/{id}, e resposta de POST/PATCH /books).
@@ -52,7 +61,7 @@ class BookDetail extends BookSummary {
     required super.themes,
     super.coverUrl,
     super.year,
-    super.educationLevel,
+    super.educationLevels,
     super.isSaved,
     this.synopsis,
     this.isbn,
@@ -84,7 +93,7 @@ class BookDetail extends BookSummary {
       themes: s.themes,
       coverUrl: s.coverUrl,
       year: s.year,
-      educationLevel: s.educationLevel,
+      educationLevels: s.educationLevels,
       isSaved: s.isSaved,
       synopsis: json['synopsis'] as String?,
       isbn: json['isbn'] as String?,

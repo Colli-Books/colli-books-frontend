@@ -15,7 +15,7 @@ class BookForm {
     this.storeUrl,
     this.bookUrl,
     this.pedagogicalMaterialUrl,
-    this.educationLevelId,
+    this.educationLevelIds = const [],
     this.themeIds = const [],
     this.coverBytes,
     this.coverFilename,
@@ -31,7 +31,7 @@ class BookForm {
   final String? storeUrl;
   final String? bookUrl;
   final String? pedagogicalMaterialUrl;
-  final int? educationLevelId;
+  final List<int> educationLevelIds;
   final List<int> themeIds;
 
   final Uint8List? coverBytes;
