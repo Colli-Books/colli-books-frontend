@@ -19,6 +19,7 @@ on:
       - 'android/**'
       - 'ios/**'
       - '.github/workflows/**'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -37,6 +38,9 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          # Versão fixa: o `stable` mais novo pode exigir Gradle/AGP mais recentes
+          # e quebrar o build sem mudança no projeto (ex.: 3.50.0 exige AGP 9.1.1).
+          flutter-version: '3.47.9'
 
       - name: Install dependencies
         run: flutter pub get
