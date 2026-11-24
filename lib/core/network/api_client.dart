@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show SocketException; // remova se for buildar para Flutter Web
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -228,8 +227,11 @@ class ApiClient {
       throw ApiException.timeout();
     } on http.ClientException catch (e) {
       throw ApiException.networkError(e.message);
-    } on SocketException catch (e) {
-      throw ApiException.networkError(e.message);
+    } on Object catch (e) {
+      if (e.runtimeType.toString() == 'SocketException') {
+        throw ApiException.networkError(e.toString());
+      }
+      rethrow;
     }
     // Qualquer outra exceção (ex.: erro de serialização) NÃO é "erro de rede":
     // propaga como bug para aparecer nos logs.

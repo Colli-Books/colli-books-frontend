@@ -8,8 +8,14 @@ class AppConfig {
   /// `--dart-define=API_BASE_URL=https://sua-api.com`
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL');
 
+  /// Modo de demonstração offline (sem backend nem banco de dados), ideal para
+  /// QR Code de banner / apresentação em Web, iOS e Android.
+  /// Pode ser desativado com `--dart-define=DEMO_MODE=false`.
+  static const bool isDemoMode = bool.fromEnvironment('DEMO_MODE', defaultValue: true);
+
   static String get apiBaseUrl {
     if (_envBaseUrl.isNotEmpty) return _envBaseUrl;
+    if (isDemoMode) return 'https://demo.collibooks.local';
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:8000'; // IP padrão do host no emulador Android
     }

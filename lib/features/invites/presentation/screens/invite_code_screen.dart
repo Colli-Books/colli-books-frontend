@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/config/app_config.dart';
+import '../../../../core/demo/demo_http_client.dart';
 import '../../data/invite_token.dart';
 import 'accept_invite_screen.dart';
 
@@ -152,6 +154,36 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
                       ),
                     ),
                   ),
+                  if (AppConfig.isDemoMode) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('demo_fill_invite_code'),
+                        onPressed: () {
+                          setState(() {
+                            _controller.text = DemoHttpClient.demoInviteToken;
+                            _error = null;
+                          });
+                          _continue();
+                        },
+                        icon: const Icon(Icons.auto_fix_high_rounded, color: _primaryText, size: 18),
+                        label: const Text(
+                          'Simular com Código de Demonstração',
+                          style: TextStyle(
+                            color: _primaryText,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: _primaryText),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

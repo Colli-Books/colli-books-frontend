@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/config/app_config.dart';
+import 'core/demo/demo_http_client.dart';
 import 'core/network/api_client.dart';
 import 'core/session/session_manager.dart';
 import 'core/session/token_storage.dart';
@@ -68,7 +69,8 @@ class _ColliBooksRootState extends State<ColliBooksRoot> {
     super.initState();
 
     // UMA instância de ApiClient por app: o access token vive nela.
-    _api = ApiClient();
+    // Em modo demonstração (QR Code / Banner), usa o cliente 100% em memória.
+    _api = ApiClient(client: AppConfig.isDemoMode ? DemoHttpClient() : null);
     final session = SessionManager(_api, TokenStorage());
 
     _authService = AuthApiService(_api, session);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../institucional/presentation/screens/fale_conosco_screen.dart';
@@ -61,6 +62,12 @@ class _LoginScreenState extends State<LoginScreen> {
   };
 
   // --- Ações ----------------------------------------------------------------
+
+  Future<void> _fazerLoginDemo({required bool asAdmin}) async {
+    _emailController.text = asAdmin ? 'admin@exemplo.com' : 'professor@exemplo.com';
+    _passwordController.text = 'demo12345';
+    await _fazerLogin();
+  }
 
   Future<void> _fazerLogin() async {
     final email = _emailController.text.trim();
@@ -493,6 +500,96 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
+                              if (AppConfig.isDemoMode) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8F5EE),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFD9D4C5)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.touch_app_rounded, size: 18, color: Color(0xFF4A2525)),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'MODO DEMONSTRAÇÃO (ACESSO RÁPIDO)',
+                                            style: TextStyle(
+                                              color: Color(0xFF4A2525),
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.4,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      const Text(
+                                        'Explore todas as funcionalidades com dados fictícios sem precisar de cadastro:',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Color(0xFF6B7280),
+                                          fontSize: 12,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      ElevatedButton.icon(
+                                        key: const ValueKey('demo_login_teacher'),
+                                        onPressed: _isLoading ? null : () => _fazerLoginDemo(asAdmin: false),
+                                        icon: const Icon(Icons.school_outlined, color: Colors.white, size: 18),
+                                        label: const Text(
+                                          'Testar como Professor',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13.5,
+                                          ),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF1D8E9E),
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      OutlinedButton.icon(
+                                        key: const ValueKey('demo_login_admin'),
+                                        onPressed: _isLoading ? null : () => _fazerLoginDemo(asAdmin: true),
+                                        icon: const Icon(
+                                          Icons.admin_panel_settings_outlined,
+                                          color: Color(0xFF4A2525),
+                                          size: 18,
+                                        ),
+                                        label: const Text(
+                                          'Testar como Painel Admin / Editora',
+                                          style: TextStyle(
+                                            color: Color(0xFF4A2525),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13.5,
+                                          ),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          side: const BorderSide(color: Color(0xFF4A2525), width: 1.2),
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           )
                         // ABA 1: FORMULÁRIO DE ESQUECI A SENHA
